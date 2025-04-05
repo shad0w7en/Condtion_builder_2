@@ -9,8 +9,7 @@ import {
   IconButton,
   Chip,
   Autocomplete,
-  SelectChangeEvent,
-  Typography
+  SelectChangeEvent
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { SingleCondition, Operator, Column, ConditionValue, LogicalOperator } from '../../types';

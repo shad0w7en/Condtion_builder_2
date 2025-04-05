@@ -12,14 +12,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Typography,
   Tooltip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import HistoryIcon from '@mui/icons-material/History';
 import { useConditionBuilder } from './ConditionBuilderContext';
-import { ConditionGroup as ConditionGroupType, SingleCondition, LogicalOperator, SavedCondition } from '../../types';
+import { ConditionGroup as ConditionGroupType, SingleCondition, LogicalOperator } from '../../types';
 import ConditionRow from './ConditionRow';
 import PreviousConditionSelector from './PreviousConditionSelector';
 import { v4 as uuidv4 } from 'uuid';

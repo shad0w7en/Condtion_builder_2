@@ -17,7 +17,7 @@ const ConditionBuilderButton: React.FC<ConditionBuilderButtonProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'table' | 'action' | 'builder'>('table');
-  const { selectedTable, setSelectedTable, setRootCondition } = useConditionBuilder();
+  const {  setSelectedTable, setRootCondition } = useConditionBuilder();
   const dialogRef = useRef<HTMLDivElement>(null);
   
   const handleOpen = () => {

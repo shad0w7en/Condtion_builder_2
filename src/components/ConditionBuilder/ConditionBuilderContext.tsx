@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
   Table, 
-  Column, 
   ConditionGroup, 
   SingleCondition, 
   SavedCondition,
@@ -300,7 +299,7 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
       return '';
     }
     
-    const conditionsSql = group.conditions.map((condition, index) => {
+    const conditionsSql = group.conditions.map((condition) => {
       if ('type' in condition && condition.type === 'group') {
         const nestedSql = generateSqlForGroup(condition);
         return nestedSql ? `(${nestedSql})` : '';
