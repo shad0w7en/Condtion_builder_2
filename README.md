@@ -1,54 +1,198 @@
-# React + TypeScript + Vite
+# Condition Builder
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A powerful React component for building complex database query conditions with a user-friendly interface.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎯 Visual condition builder interface
+- 📊 Support for multiple tables and columns
+- 🔄 Dynamic operators based on data types
+- 🎨 Customizable validation rules
+- 📝 SQL and JSON condition representations
+- 🔗 Nested condition groups with AND/OR logic
+- 🎮 Type-safe with TypeScript
+- 🎨 Modern and responsive UI
 
-## Expanding the ESLint configuration
+## Local Development Setup
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+This project is currently in local development and not published to any artifact repository. To use it in your project:
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
+1. Clone the repository:
+```bash
+git clone [repository-url]
+```
+
+2. Copy the `src` directory into your project
+3. Import the components and types as needed:
+```tsx
+import { ConditionBuilder } from './components/ConditionBuilder';
+import { conditionBuilderConfig } from './config/tables';
+import { SavedCondition } from './types';
+```
+
+## Quick Start
+
+```tsx
+import { ConditionBuilder } from './components/ConditionBuilder';
+import { conditionBuilderConfig } from './config/tables';
+import { SavedCondition } from './types';
+
+const handleConditionSaved = (condition: SavedCondition) => {
+  console.log('Saved condition:', condition);
+};
+
+function App() {
+  return (
+    <ConditionBuilder 
+      config={conditionBuilderConfig}
+      onConditionSaved={handleConditionSaved}
+      buttonText="Open Condition Builder"
+    />
+  );
+}
+```
+
+## Configuration
+
+The Condition Builder requires a configuration object that defines your tables, operators, and validation rules:
+
+```typescript
+interface ConditionBuilderConfig {
+  tables: Table[];
+  defaultOperators: {
+    [key: string]: Operator[];
+  };
+  validationRules?: {
+    [key: string]: (value: any) => boolean;
+  };
+}
+```
+
+### Table Configuration
+
+```typescript
+interface Table {
+  id: string;
+  name: string;
+  displayName: string;
+  columns: Column[];
+}
+
+interface Column {
+  name: string;
+  displayName: string;
+  dataType: 'string' | 'number' | 'integer' | 'boolean' | 'date' | 'enum';
+  table: string;
+  enumValues?: string[];
+}
+```
+
+### Example Configuration
+
+```typescript
+const conditionBuilderConfig = {
+  tables: [
+    {
+      id: '1',
+      name: 'users',
+      displayName: 'Users',
+      columns: [
+        { name: 'id', displayName: 'ID', dataType: 'integer', table: 'users' },
+        { name: 'name', displayName: 'Name', dataType: 'string', table: 'users' },
+        { name: 'email', displayName: 'Email', dataType: 'string', table: 'users' },
+        { name: 'status', displayName: 'Status', dataType: 'enum', table: 'users', 
+          enumValues: ['active', 'inactive', 'pending'] }
+      ]
+    }
   ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
+  defaultOperators: {
+    string: ['=', '!=', 'LIKE', 'NOT LIKE', 'IS NULL', 'IS NOT NULL'],
+    number: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS NULL', 'IS NOT NULL'],
+    enum: ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL']
   },
-})
+  validationRules: {
+    email: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  }
+};
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Props
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `config` | `ConditionBuilderConfig` | Yes | Configuration object for tables, operators, and validation rules |
+| `onConditionSaved` | `(condition: SavedCondition) => void` | No | Callback function when a condition is saved |
+| `buttonText` | `string` | No | Custom text for the condition builder button |
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+## Saved Condition Type
+
+```typescript
+interface SavedCondition {
+  id: string;
+  name: string;
+  tableId: string;
+  condition: ConditionGroup;
+  sqlRepresentation: string;
+  jsonRepresentation: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 ```
+
+## Usage Examples
+
+### Basic Usage
+
+```tsx
+<ConditionBuilder 
+  config={conditionBuilderConfig}
+  onConditionSaved={(condition) => {
+    // Handle the saved condition
+    console.log(condition.sqlRepresentation);
+  }}
+/>
+```
+
+### With Custom Button Text
+
+```tsx
+<ConditionBuilder 
+  config={conditionBuilderConfig}
+  buttonText="Create New Filter"
+  onConditionSaved={handleConditionSaved}
+/>
+```
+
+## Development
+
+### Prerequisites
+
+- Node.js 16+
+- npm or yarn
+
+### Setup
+
+```bash
+# Clone the repository
+git clone [repository-url]
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Building
+
+```bash
+npm run build
+```
+
+## Contributing
+
+
+
+## License
+
+
