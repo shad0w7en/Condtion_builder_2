@@ -58,11 +58,13 @@ const ConditionBuilderContext = createContext<ConditionBuilderContextType | null
 interface ConditionBuilderProviderProps {
   children: ReactNode;
   config: ConditionBuilderConfig;
+  initialSavedConditions?: SavedCondition[];
 }
 
 export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> = ({ 
   children,
-  config
+  config,
+  initialSavedConditions
 }) => {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [rootCondition, setRootCondition] = useState<ConditionGroup>({
@@ -71,7 +73,9 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     logicalOperator: 'AND',
     conditions: []
   });
-  const [savedConditions, setSavedConditions] = useState<SavedCondition[]>(mockSavedConditions);
+  const [savedConditions, setSavedConditions] = useState<SavedCondition[]>(
+    initialSavedConditions || mockSavedConditions
+  );
   
   // Function to add a condition to a specific group
   const addCondition = (parentGroupId: string, condition: SingleCondition) => {

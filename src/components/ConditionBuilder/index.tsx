@@ -8,15 +8,20 @@ interface ConditionBuilderProps {
   buttonText?: string;
   onConditionSaved?: (condition: SavedCondition) => void;
   config: ConditionBuilderConfig;
+  initialSavedConditions?: SavedCondition[];
 }
 
 export const ConditionBuilder: React.FC<ConditionBuilderProps> = ({ 
   buttonText, 
   onConditionSaved,
-  config
+  config,
+  initialSavedConditions
 }) => {
   return (
-    <ConditionBuilderProvider config={config}>
+    <ConditionBuilderProvider 
+      config={config}
+      initialSavedConditions={initialSavedConditions}
+    >
       <ConditionBuilderButton 
         buttonText={buttonText} 
         onConditionSaved={onConditionSaved} 
