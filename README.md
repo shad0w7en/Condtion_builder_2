@@ -166,6 +166,7 @@ const conditionBuilderConfig = {
 | `config` | `ConditionBuilderConfig` | Yes | Configuration object for tables, operators, and validation rules |
 | `onConditionSaved` | `(condition: SavedCondition) => void` | No | Callback function when a condition is saved |
 | `buttonText` | `string` | No | Custom text for the condition builder button |
+| `initialSavedConditions` | `SavedCondition[]` | No | Array of previously saved conditions to initialize the builder with |
 
 ## Saved Condition Type
 
@@ -221,6 +222,157 @@ const customConfig = {
 
 <ConditionBuilder 
   config={customConfig}
+  onConditionSaved={handleConditionSaved}
+/>
+```
+
+### Using Multiple ConditionBuilders in the Same Project
+
+You can use multiple ConditionBuilder instances in the same project, each with its own configuration, tables, and fields. Each instance maintains its own state and can be configured independently.
+
+```tsx
+// User table configuration
+const userTableConfig = {
+  tables: [
+    {
+      id: 'users',
+      name: 'users',
+      displayName: 'Users',
+      columns: [
+        { name: 'id', displayName: 'ID', dataType: 'integer', table: 'users' },
+        { name: 'name', displayName: 'Name', dataType: 'string', table: 'users' },
+        { name: 'email', displayName: 'Email', dataType: 'string', table: 'users' },
+        { name: 'status', displayName: 'Status', dataType: 'enum', table: 'users', 
+          enumValues: ['active', 'inactive', 'pending'] }
+      ]
+    }
+  ],
+  defaultOperators: {
+    string: ['=', '!=', 'LIKE', 'NOT LIKE'],
+    integer: ['=', '!=', '>', '<', '>=', '<='],
+    enum: ['=', '!=', 'IN', 'NOT IN']
+  }
+};
+
+// Order table configuration
+const orderTableConfig = {
+  tables: [
+    {
+      id: 'orders',
+      name: 'orders',
+      displayName: 'Orders',
+      columns: [
+        { name: 'order_id', displayName: 'Order ID', dataType: 'integer', table: 'orders' },
+        { name: 'amount', displayName: 'Amount', dataType: 'number', table: 'orders' },
+        { name: 'status', displayName: 'Order Status', dataType: 'enum', table: 'orders',
+          enumValues: ['pending', 'completed', 'cancelled'] }
+      ]
+    }
+  ],
+  defaultOperators: {
+    number: ['=', '!=', '>', '<', '>=', '<=', 'BETWEEN'],
+    integer: ['=', '!=', '>', '<', '>=', '<='],
+    enum: ['=', '!=', 'IN', 'NOT IN']
+  }
+};
+
+const YourComponent = () => {
+  const handleUserConditionSaved = (condition: SavedCondition) => {
+    console.log('User filter condition:', condition);
+    // Handle user filter condition
+  };
+
+  const handleOrderConditionSaved = (condition: SavedCondition) => {
+    console.log('Order filter condition:', condition);
+    // Handle order filter condition
+  };
+
+  return (
+    <div>
+      {/* Users Section */}
+      <div>
+        <h2>User Filters</h2>
+        <ConditionBuilder 
+          config={userTableConfig}
+          buttonText="Configure User Filter"
+          onConditionSaved={handleUserConditionSaved}
+        />
+      </div>
+
+      {/* Orders Section */}
+      <div>
+        <h2>Order Filters</h2>
+        <ConditionBuilder 
+          config={orderTableConfig}
+          buttonText="Configure Order Filter"
+          onConditionSaved={handleOrderConditionSaved}
+        />
+      </div>
+    </div>
+  );
+};
+```
+
+Key features when using multiple ConditionBuilders:
+
+1. **Independent Configurations**: Each instance can have its own:
+   - Tables and columns
+   - Data types
+   - Operators
+   - Validation rules
+
+2. **Separate State**: Each ConditionBuilder maintains its own state and won't interfere with other instances.
+
+3. **Different Callbacks**: You can handle saved conditions differently for each instance.
+
+4. **Custom Initial Conditions**: Each instance can have its own set of initial conditions:
+```tsx
+<ConditionBuilder 
+  config={userTableConfig}
+  initialSavedConditions={userSavedConditions}
+  onConditionSaved={handleUserConditionSaved}
+/>
+
+<ConditionBuilder 
+  config={orderTableConfig}
+  initialSavedConditions={orderSavedConditions}
+  onConditionSaved={handleOrderConditionSaved}
+/>
+```
+
+5. **Custom UI**: Each instance can have its own button text and UI elements.
+
+### Using Initial Saved Conditions
+
+```tsx
+const initialConditions = [
+  {
+    id: 'saved-1',
+    name: 'Active Users',
+    tableId: '1',
+    condition: {
+      id: 'group-1',
+      type: 'group',
+      logicalOperator: 'AND',
+      conditions: [
+        {
+          id: 'cond-1',
+          column: { name: 'status', displayName: 'Status', dataType: 'enum', table: 'users' },
+          operator: '=',
+          value: { type: 'value', value: 'active' }
+        }
+      ]
+    },
+    sqlRepresentation: "SELECT * FROM users WHERE status = 'active'",
+    jsonRepresentation: '{"id":"group-1","type":"group","logicalOperator":"AND","conditions":[{"id":"cond-1","column":{"name":"status","displayName":"Status","dataType":"enum","table":"users"},"operator":"=","value":{"type":"value","value":"active"}}]}',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+];
+
+<ConditionBuilder 
+  config={conditionBuilderConfig}
+  initialSavedConditions={initialConditions}
   onConditionSaved={handleConditionSaved}
 />
 ```
