@@ -1,6 +1,6 @@
 # Condition Builder
 
-A powerful React component for building complex database query conditions with a user-friendly interface.
+A powerful React component for building complex database query conditions with a user-friendly interface. This component allows you to create, manage, and save complex database query conditions through an intuitive visual interface.
 
 ## Features
 
@@ -12,6 +12,8 @@ A powerful React component for building complex database query conditions with a
 - 🔗 Nested condition groups with AND/OR logic
 - 🎮 Type-safe with TypeScript
 - 🎨 Modern and responsive UI
+- 💾 Save and load conditions
+- 🔍 Preview SQL and JSON representations
 
 ## Local Development Setup
 
@@ -19,15 +21,50 @@ This project is currently in local development and not published to any artifact
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
+git clone https://github.com/your-username/condition_builder_2.git
+cd condition_builder_2/condition_builder
 ```
 
-2. Copy the `src` directory into your project
-3. Import the components and types as needed:
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. To use in another project, copy the following directories and files:
+   - `src/components/ConditionBuilder/` - The main component and its subcomponents
+   - `src/config/` - Configuration files
+   - `src/types.ts` - TypeScript type definitions
+
+5. Import the components and types in your project:
 ```tsx
 import { ConditionBuilder } from './components/ConditionBuilder';
 import { conditionBuilderConfig } from './config/tables';
 import { SavedCondition } from './types';
+```
+
+## Project Structure
+
+```
+condition_builder/
+├── src/
+│   ├── components/
+│   │   └── ConditionBuilder/
+│   │       ├── index.tsx              # Main component
+│   │       ├── ConditionBuilderContext.tsx  # Context provider
+│   │       ├── BuilderInterface.tsx   # Main builder UI
+│   │       ├── ConditionGroup.tsx     # Condition group component
+│   │       ├── ConditionRow.tsx       # Individual condition row
+│   │       ├── TableSelector.tsx      # Table selection component
+│   │       ├── ActionSelector.tsx     # Action selection component
+│   │       └── SaveConditionDialog.tsx # Save condition dialog
+│   ├── config/
+│   │   └── tables.ts                  # Table configurations
+│   └── types.ts                       # TypeScript type definitions
 ```
 
 ## Quick Start
@@ -39,6 +76,12 @@ import { SavedCondition } from './types';
 
 const handleConditionSaved = (condition: SavedCondition) => {
   console.log('Saved condition:', condition);
+  // You can:
+  // - Store the condition in your database
+  // - Use it to filter data
+  // - Display it in your UI
+  console.log('SQL:', condition.sqlRepresentation);
+  console.log('JSON:', condition.jsonRepresentation);
 };
 
 function App() {
@@ -163,6 +206,25 @@ interface SavedCondition {
 />
 ```
 
+### Advanced Usage with Custom Validation
+
+```tsx
+const customConfig = {
+  ...conditionBuilderConfig,
+  validationRules: {
+    ...conditionBuilderConfig.validationRules,
+    age: (value: number) => value >= 0 && value <= 120,
+    amount: (value: number) => value >= 0,
+    customField: (value: string) => value.length >= 3
+  }
+};
+
+<ConditionBuilder 
+  config={customConfig}
+  onConditionSaved={handleConditionSaved}
+/>
+```
+
 ## Development
 
 ### Prerequisites
@@ -174,7 +236,8 @@ interface SavedCondition {
 
 ```bash
 # Clone the repository
-git clone [repository-url]
+git clone https://github.com/your-username/condition_builder_2.git
+cd condition_builder_2/condition_builder
 
 # Install dependencies
 npm install
@@ -189,10 +252,34 @@ npm run dev
 npm run build
 ```
 
+### Running Tests
+
+```bash
+npm test
+```
+
 ## Contributing
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
+### Development Guidelines
+
+- Follow the existing code style and formatting
+- Add tests for new features
+- Update documentation as needed
+- Use TypeScript for all new code
+- Follow React best practices and hooks guidelines
 
 ## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support, please open an issue in the GitHub repository or contact the maintainers.
 
 
