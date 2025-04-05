@@ -83,10 +83,10 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
   
   return (
     <>
-      <DialogTitle>
+      <DialogTitle id="condition-builder-dialog-title">
         {selectedTable ? `Build Condition for ${selectedTable.displayName}` : 'Build Condition'}
       </DialogTitle>
-      <DialogContent>
+      <DialogContent id="condition-builder-dialog-description">
         <Paper elevation={3} style={{ padding: '20px', marginBottom: '20px' }}>
           <Typography variant="h6" gutterBottom>
             Condition Builder
@@ -107,6 +107,7 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
             onChange={handleTabChange}
             indicatorColor="primary"
             textColor="primary"
+            aria-label="condition output tabs"
           >
             <Tab label="SQL" />
             <Tab label="JSON" />
@@ -146,6 +147,7 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
           color="primary" 
           variant="contained"
           disabled={rootCondition.conditions.length === 0}
+          autoFocus
         >
           Save Condition
         </Button>

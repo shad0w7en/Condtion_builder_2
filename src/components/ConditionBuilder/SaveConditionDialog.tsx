@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -21,6 +21,7 @@ const SaveConditionDialog: React.FC<SaveConditionDialogProps> = ({
 }) => {
   const [conditionName, setConditionName] = useState('');
   const [error, setError] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
   
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setConditionName(event.target.value);
@@ -45,9 +46,22 @@ const SaveConditionDialog: React.FC<SaveConditionDialogProps> = ({
   };
   
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Save Condition</DialogTitle>
-      <DialogContent>
+    <Dialog 
+      open={open} 
+      onClose={handleClose}
+      aria-labelledby="save-condition-dialog-title"
+      aria-describedby="save-condition-dialog-description"
+      ref={dialogRef}
+      container={document.body}
+      disableScrollLock={true}
+      hideBackdrop={false}
+      BackdropProps={{
+        invisible: false,
+        sx: { zIndex: -1 }
+      }}
+    >
+      <DialogTitle id="save-condition-dialog-title">Save Condition</DialogTitle>
+      <DialogContent id="save-condition-dialog-description">
         <TextField
           autoFocus
           margin="dense"

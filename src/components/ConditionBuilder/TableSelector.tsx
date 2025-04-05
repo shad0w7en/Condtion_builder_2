@@ -34,8 +34,8 @@ const TableSelector: React.FC<TableSelectorProps> = ({ onTableSelected }) => {
   
   return (
     <>
-      <DialogTitle>Select a Table</DialogTitle>
-      <DialogContent>
+      <DialogTitle id="condition-builder-dialog-title">Select a Table</DialogTitle>
+      <DialogContent id="condition-builder-dialog-description">
         <FormControl fullWidth margin="normal">
           <InputLabel id="table-select-label">Table</InputLabel>
           <Select
@@ -43,6 +43,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({ onTableSelected }) => {
             value={selectedTableId}
             onChange={handleTableChange}
             label="Table"
+            autoFocus
           >
             {config.tables.map(table => (
               <MenuItem key={table.id} value={table.id}>

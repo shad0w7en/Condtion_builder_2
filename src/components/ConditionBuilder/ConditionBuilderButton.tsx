@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button, Dialog } from '@mui/material';
 import TableSelector from './TableSelector';
 import ActionSelector from './ActionSelector';
@@ -18,6 +18,7 @@ const ConditionBuilderButton: React.FC<ConditionBuilderButtonProps> = ({
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'table' | 'action' | 'builder'>('table');
   const { selectedTable, setSelectedTable, setRootCondition } = useConditionBuilder();
+  const dialogRef = useRef<HTMLDivElement>(null);
   
   const handleOpen = () => {
     setOpen(true);
@@ -66,6 +67,20 @@ const ConditionBuilderButton: React.FC<ConditionBuilderButtonProps> = ({
         onClose={handleClose}
         maxWidth="md"
         fullWidth
+        aria-labelledby="condition-builder-dialog-title"
+        aria-describedby="condition-builder-dialog-description"
+        disablePortal={false}
+        keepMounted={false}
+        disableEnforceFocus={false}
+        disableAutoFocus={false}
+        ref={dialogRef}
+        container={document.body}
+        disableScrollLock={true}
+        hideBackdrop={false}
+        BackdropProps={{
+          invisible: false,
+          sx: { zIndex: -1 }
+        }}
       >
         {step === 'table' && (
           <TableSelector onTableSelected={handleTableSelected} />

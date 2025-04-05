@@ -31,16 +31,17 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
   
   return (
     <>
-      <DialogTitle>
+      <DialogTitle id="condition-builder-dialog-title">
         {selectedTable ? `${selectedTable.displayName} Conditions` : 'Conditions'}
       </DialogTitle>
-      <DialogContent>
+      <DialogContent id="condition-builder-dialog-description">
         <Button 
           variant="contained" 
           color="primary" 
           fullWidth 
           onClick={onCreateNew}
           style={{ marginBottom: '20px' }}
+          autoFocus
         >
           Create New Condition
         </Button>
