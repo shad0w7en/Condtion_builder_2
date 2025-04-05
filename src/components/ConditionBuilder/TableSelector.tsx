@@ -11,14 +11,13 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import { useConditionBuilder } from './ConditionBuilderContext';
-import { mockTables } from '../../mockData';
 
 interface TableSelectorProps {
   onTableSelected: () => void;
 }
 
 const TableSelector: React.FC<TableSelectorProps> = ({ onTableSelected }) => {
-  const { setSelectedTable } = useConditionBuilder();
+  const { setSelectedTable, config } = useConditionBuilder();
   const [selectedTableId, setSelectedTableId] = useState<string>('');
   
   const handleTableChange = (event: SelectChangeEvent) => {
@@ -26,7 +25,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({ onTableSelected }) => {
   };
   
   const handleNext = () => {
-    const selectedTable = mockTables.find(table => table.id === selectedTableId);
+    const selectedTable = config.tables.find(table => table.id === selectedTableId);
     if (selectedTable) {
       setSelectedTable(selectedTable);
       onTableSelected();
@@ -45,7 +44,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({ onTableSelected }) => {
             onChange={handleTableChange}
             label="Table"
           >
-            {mockTables.map(table => (
+            {config.tables.map(table => (
               <MenuItem key={table.id} value={table.id}>
                 {table.displayName}
               </MenuItem>

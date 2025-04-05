@@ -1,16 +1,20 @@
-import React from 'react';
+
 import { ThemeProvider, createTheme, CssBaseline, Container, Typography, Box, Paper } from '@mui/material';
 import ConditionBuilderDemo from './ConditionBuilderDemo';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#d50000',
+      light: '#ef5350',
     },
     secondary: {
-      main: '#dc004e',
+      main: '#555555',
+      light: 'f5f5f5'
     },
-  },
+  }, typography: {
+    htmlFontSize: 18,
+  }
 });
 
 function App() {

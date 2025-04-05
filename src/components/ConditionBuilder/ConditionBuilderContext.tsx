@@ -10,6 +10,20 @@ import {
 import { mockSavedConditions } from '../../mockData';
 import { v4 as uuidv4 } from 'uuid';
 
+export interface ConditionBuilderConfig {
+  tables: Table[];
+  defaultOperators?: {
+    string?: string[];
+    number?: string[];
+    integer?: string[];
+    boolean?: string[];
+    date?: string[];
+    enum?: string[];
+  };
+  customOperators?: Record<string, string[]>;
+  validationRules?: Record<string, (value: any) => boolean>;
+}
+
 interface ConditionBuilderContextType {
   selectedTable: Table | null;
   setSelectedTable: (table: Table | null) => void;
@@ -35,21 +49,29 @@ interface ConditionBuilderContextType {
   
   saveCondition: (name: string) => Promise<SavedCondition>;
   loadSavedCondition: (conditionId: string) => void;
+
+  // Add config to context
+  config: ConditionBuilderConfig;
 }
 
-const ConditionBuilderContext = createContext<ConditionBuilderContextType | undefined>(undefined);
+const ConditionBuilderContext = createContext<ConditionBuilderContextType | null>(null);
 
-const ConditionBuilderProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+interface ConditionBuilderProviderProps {
+  children: ReactNode;
+  config: ConditionBuilderConfig;
+}
+
+export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> = ({ 
+  children,
+  config
+}) => {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  
-  // Initialize an empty root condition group
   const [rootCondition, setRootCondition] = useState<ConditionGroup>({
     id: 'root',
     type: 'group',
     logicalOperator: 'AND',
     conditions: []
   });
-  
   const [savedConditions, setSavedConditions] = useState<SavedCondition[]>(mockSavedConditions);
   
   // Function to add a condition to a specific group
@@ -380,7 +402,8 @@ const ConditionBuilderProvider: React.FC<{ children: ReactNode }> = ({ children 
     generateSQL,
     generateJSON,
     saveCondition,
-    loadSavedCondition
+    loadSavedCondition,
+    config
   };
   
   return (
@@ -392,7 +415,7 @@ const ConditionBuilderProvider: React.FC<{ children: ReactNode }> = ({ children 
 
 export const useConditionBuilder = () => {
   const context = useContext(ConditionBuilderContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useConditionBuilder must be used within a ConditionBuilderProvider');
   }
   return context;
