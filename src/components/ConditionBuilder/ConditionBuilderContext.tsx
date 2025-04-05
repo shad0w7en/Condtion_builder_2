@@ -303,7 +303,7 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
       return '';
     }
     
-    const conditionsSql = group.conditions.map((condition) => {
+    const conditionsSql = group.conditions.map((condition, index) => {
       if ('type' in condition && condition.type === 'group') {
         const nestedSql = generateSqlForGroup(condition);
         return nestedSql ? `(${nestedSql})` : '';
@@ -339,8 +339,23 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
       }
     }).filter(Boolean);
     
-    // Join conditions with the group's logical operator and ensure proper spacing
-    return conditionsSql.join(` ${group.logicalOperator} `);
+    // Join conditions with the appropriate logical operator
+    let result = '';
+    for (let i = 0; i < conditionsSql.length; i++) {
+      if (i === 0) {
+        result = conditionsSql[i];
+      } else {
+        // Use the logical operator from the previous condition, or fall back to the group's operator
+        const prevCondition = group.conditions[i - 1];
+        const logicalOperator = ('type' in prevCondition) 
+          ? group.logicalOperator 
+          : (prevCondition as SingleCondition).logicalOperator || group.logicalOperator;
+        
+        result += ` ${logicalOperator} ${conditionsSql[i]}`;
+      }
+    }
+    
+    return result;
   };
   
   // Function to generate SQL from the current condition

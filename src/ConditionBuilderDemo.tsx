@@ -6,6 +6,8 @@ import { SavedCondition } from './types';
 const ConditionBuilderDemo: React.FC = () => {
   const handleConditionSaved = (condition: SavedCondition) => {
     console.log('Saved condition:', condition);
+    console.log('SQL:', condition.sqlRepresentation);
+    console.log('JSON:', condition.jsonRepresentation);
     // Here you can handle the saved condition according to your needs
     // For example, send it to an API, store it in state, etc.
   };

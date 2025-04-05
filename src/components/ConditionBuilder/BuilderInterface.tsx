@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   DialogTitle, 
   DialogContent, 
@@ -58,6 +58,13 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
   
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
+  const [sqlOutput, setSqlOutput] = useState('');
+  const [jsonOutput, setJsonOutput] = useState('');
+  
+  useEffect(() => {
+    setSqlOutput(generateSQL());
+    setJsonOutput(generateJSON());
+  }, [rootCondition, generateSQL, generateJSON]);
   
   const handleTabChange = (_: React.ChangeEvent<{}>, newValue: number) => {
     setTabValue(newValue);
@@ -121,7 +128,7 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
               overflowX: 'auto',
               fontFamily: 'monospace'
             }}>
-              {generateSQL()}
+              {sqlOutput}
             </Typography>
           </TabPanel>
           
@@ -133,7 +140,7 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
               overflowX: 'auto',
               fontFamily: 'monospace'
             }}>
-              {generateJSON()}
+              {jsonOutput}
             </Typography>
           </TabPanel>
         </Paper>
