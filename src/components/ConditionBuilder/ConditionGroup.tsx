@@ -38,7 +38,6 @@ const ConditionGroup: React.FC<ConditionGroupProps> = ({
 }) => {
   const { 
     addCondition, 
-    removeCondition, 
     addGroup, 
     removeGroup, 
     updateGroupLogicalOperator,
@@ -114,20 +113,18 @@ const ConditionGroup: React.FC<ConditionGroupProps> = ({
         }}
       >
         <Box display="flex" alignItems="center" mb={1}>
-          {!isRootGroup && (
-            <Box mr={1}>
-              <FormControl size="small">
-                <Select
-                  value={group.logicalOperator}
-                  onChange={handleLogicalOperatorChange}
-                  sx={{ minWidth: 100 }}
-                >
-                  <MenuItem value="AND">AND</MenuItem>
-                  <MenuItem value="OR">OR</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          )}
+          <Box mr={1}>
+            <FormControl size="small">
+              <Select
+                value={group.logicalOperator}
+                onChange={handleLogicalOperatorChange}
+                sx={{ minWidth: 100 }}
+              >
+                <MenuItem value="AND">AND</MenuItem>
+                <MenuItem value="OR">OR</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
           
           <Box flex={1} />
           

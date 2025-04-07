@@ -187,14 +187,6 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
     });
   };
   
-  // Handle logical operator change
-  const handleLogicalOperatorChange = (event: SelectChangeEvent) => {
-    updateCondition({
-      ...condition,
-      logicalOperator: event.target.value as LogicalOperator
-    });
-  };
-  
   // Handle delete condition
   const handleDeleteCondition = () => {
     removeCondition(condition.id, parentGroupId);
@@ -405,18 +397,6 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
       </FormControl>
 
       {renderValueInput()}
-
-      <FormControl sx={{ minWidth: 120 }}>
-        <InputLabel>Logical Operator</InputLabel>
-        <Select
-          value={condition.logicalOperator || 'AND'}
-          onChange={handleLogicalOperatorChange}
-          label="Logical Operator"
-        >
-          <MenuItem value="AND">AND</MenuItem>
-          <MenuItem value="OR">OR</MenuItem>
-        </Select>
-      </FormControl>
 
       <IconButton onClick={handleDeleteCondition} color="error">
         <DeleteIcon />

@@ -82,9 +82,16 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     setRootCondition(prevRoot => {
       const updateGroup = (group: ConditionGroup): ConditionGroup => {
         if (group.id === parentGroupId) {
+          // If this is the first condition in the group, ensure it has the group's logical operator
+          const isFirstCondition = group.conditions.length === 0;
+          const newCondition = isFirstCondition ? {
+            ...condition,
+            logicalOperator: group.logicalOperator
+          } : condition;
+
           return {
             ...group,
-            conditions: [...group.conditions, condition]
+            conditions: [...group.conditions, newCondition]
           };
         }
         
@@ -303,7 +310,7 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
       return '';
     }
     
-    const conditionsSql = group.conditions.map((condition, index) => {
+    const conditionsSql = group.conditions.map(condition => {
       if ('type' in condition && condition.type === 'group') {
         const nestedSql = generateSqlForGroup(condition);
         return nestedSql ? `(${nestedSql})` : '';
@@ -339,23 +346,8 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
       }
     }).filter(Boolean);
     
-    // Join conditions with the appropriate logical operator
-    let result = '';
-    for (let i = 0; i < conditionsSql.length; i++) {
-      if (i === 0) {
-        result = conditionsSql[i];
-      } else {
-        // Use the logical operator from the previous condition, or fall back to the group's operator
-        const prevCondition = group.conditions[i - 1];
-        const logicalOperator = ('type' in prevCondition) 
-          ? group.logicalOperator 
-          : (prevCondition as SingleCondition).logicalOperator || group.logicalOperator;
-        
-        result += ` ${logicalOperator} ${conditionsSql[i]}`;
-      }
-    }
-    
-    return result;
+    // Join conditions with the group's logical operator
+    return conditionsSql.join(` ${group.logicalOperator} `);
   };
   
   // Function to generate SQL from the current condition
