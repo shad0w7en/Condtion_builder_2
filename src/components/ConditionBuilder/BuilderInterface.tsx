@@ -19,6 +19,8 @@ import { SavedCondition } from '../../types';
 interface BuilderInterfaceProps {
   onBack: () => void;
   onSave: (condition: SavedCondition) => void;
+  onSelect?: (json: string, sql: string) => void;
+  isReadOnly?: boolean;
 }
 
 interface TabPanelProps {
@@ -47,7 +49,12 @@ const TabPanel: React.FC<TabPanelProps> = (props) => {
   );
 };
 
-const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) => {
+const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ 
+  onBack, 
+  onSave,
+  onSelect,
+  isReadOnly = false
+}) => {
   const { 
     selectedTable, 
     rootCondition, 
@@ -87,6 +94,12 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
       console.error('Error saving condition:', error);
     }
   };
+
+  const handleSelect = () => {
+    if (onSelect) {
+      onSelect(jsonOutput, sqlOutput);
+    }
+  };
   
   return (
     <>
@@ -102,7 +115,8 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
           <ConditionGroup 
             group={rootCondition} 
             parentGroupId="" 
-            level={0} 
+            level={0}
+            isReadOnly={isReadOnly}
           />
         </Paper>
         
@@ -149,22 +163,35 @@ const BuilderInterface: React.FC<BuilderInterfaceProps> = ({ onBack, onSave }) =
         <Button onClick={onBack} color="primary">
           Back
         </Button>
-        <Button 
-          onClick={handleOpenSaveDialog} 
-          color="primary" 
-          variant="contained"
-          disabled={rootCondition.conditions.length === 0}
-          autoFocus
-        >
-          Save Condition
-        </Button>
+        {!isReadOnly && (
+          <Button 
+            onClick={handleOpenSaveDialog} 
+            color="primary" 
+            variant="contained"
+            disabled={rootCondition.conditions.length === 0}
+          >
+            Save Condition
+          </Button>
+        )}
+        {isReadOnly && onSelect && (
+          <Button 
+            onClick={handleSelect} 
+            color="primary" 
+            variant="contained"
+            autoFocus
+          >
+            Yes
+          </Button>
+        )}
       </DialogActions>
       
-      <SaveConditionDialog 
-        open={saveDialogOpen}
-        onClose={handleCloseSaveDialog}
-        onSave={handleSaveCondition}
-      />
+      {!isReadOnly && (
+        <SaveConditionDialog 
+          open={saveDialogOpen}
+          onClose={handleCloseSaveDialog}
+          onSave={handleSaveCondition}
+        />
+      )}
     </>
   );
 };

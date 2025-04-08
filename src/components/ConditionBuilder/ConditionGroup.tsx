@@ -28,13 +28,15 @@ interface ConditionGroupProps {
   parentGroupId: string;
   level: number;
   onDelete?: () => void;
+  isReadOnly?: boolean;
 }
 
 const ConditionGroup: React.FC<ConditionGroupProps> = ({ 
   group, 
   parentGroupId, 
   level,
-  onDelete 
+  onDelete,
+  isReadOnly = false
 }) => {
   const { 
     addCondition, 
@@ -119,6 +121,7 @@ const ConditionGroup: React.FC<ConditionGroupProps> = ({
                 value={group.logicalOperator}
                 onChange={handleLogicalOperatorChange}
                 sx={{ minWidth: 100 }}
+                disabled={isReadOnly}
               >
                 <MenuItem value="AND">AND</MenuItem>
                 <MenuItem value="OR">OR</MenuItem>
@@ -128,76 +131,78 @@ const ConditionGroup: React.FC<ConditionGroupProps> = ({
           
           <Box flex={1} />
           
-          <Box display="flex" gap={1}>
-            <Tooltip title="Add Condition">
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={handleAddCondition}
-                sx={{ 
-                  borderRadius: '4px',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                }}
-              >
-                Condition
-              </Button>
-            </Tooltip>
-            
-            <Tooltip title="Add Group">
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={handleAddGroup}
-                sx={{ 
-                  borderRadius: '4px',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                }}
-              >
-                Group
-              </Button>
-            </Tooltip>
-            
-            <Tooltip title="Add Previous Condition">
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<HistoryIcon />}
-                onClick={handleAddPreviousCondition}
-                disabled={!selectedTable || savedConditions.filter(c => c.tableId === selectedTable.id).length === 0}
-                sx={{ 
-                  borderRadius: '4px',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                }}
-              >
-                Previous
-              </Button>
-            </Tooltip>
-            
-            {!isRootGroup && (
-              <Tooltip title="Delete Group">
-                <IconButton 
-                  size="small" 
-                  onClick={handleDeleteGroup}
+          {!isReadOnly && (
+            <Box display="flex" gap={1}>
+              <Tooltip title="Add Condition">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddCondition}
                   sx={{ 
-                    color: 'error.main',
-                    '&:hover': {
-                      backgroundColor: 'rgba(211, 47, 47, 0.04)'
-                    }
+                    borderRadius: '4px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                   }}
                 >
-                  <DeleteIcon />
-                </IconButton>
+                  Condition
+                </Button>
               </Tooltip>
-            )}
-          </Box>
+              
+              <Tooltip title="Add Group">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddGroup}
+                  sx={{ 
+                    borderRadius: '4px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  Group
+                </Button>
+              </Tooltip>
+              
+              <Tooltip title="Add Previous Condition">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<HistoryIcon />}
+                  onClick={handleAddPreviousCondition}
+                  disabled={!selectedTable || savedConditions.filter(c => c.tableId === selectedTable.id).length === 0}
+                  sx={{ 
+                    borderRadius: '4px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  Previous
+                </Button>
+              </Tooltip>
+              
+              {!isRootGroup && (
+                <Tooltip title="Delete Group">
+                  <IconButton 
+                    size="small" 
+                    onClick={handleDeleteGroup}
+                    sx={{ 
+                      color: 'error.main',
+                      '&:hover': {
+                        backgroundColor: 'rgba(211, 47, 47, 0.04)'
+                      }
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          )}
         </Box>
 
         {group.conditions.map((condition, index) => (
@@ -209,43 +214,47 @@ const ConditionGroup: React.FC<ConditionGroupProps> = ({
                 parentGroupId={group.id}
                 level={level + 1}
                 onDelete={() => removeGroup(condition.id, group.id)}
+                isReadOnly={isReadOnly}
               />
             ) : (
               <ConditionRow
                 condition={condition as SingleCondition}
                 parentGroupId={group.id}
+                isReadOnly={isReadOnly}
               />
             )}
           </React.Fragment>
         ))}
       </Paper>
 
-      <Dialog 
-        open={previousConditionDialogOpen} 
-        onClose={handlePreviousConditionCancel}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Select Previous Condition</DialogTitle>
-        <DialogContent>
-          <Box mt={2}>
-            <PreviousConditionSelector
-              selectedId={selectedPreviousConditionId}
-              onChange={handlePreviousConditionSelect}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handlePreviousConditionCancel}>Cancel</Button>
-          <Button 
-            onClick={handlePreviousConditionConfirm}
-            variant="contained"
-            disabled={!selectedPreviousConditionId}
-          >
-            Add Condition
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {!isReadOnly && (
+        <Dialog 
+          open={previousConditionDialogOpen} 
+          onClose={handlePreviousConditionCancel}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Select Previous Condition</DialogTitle>
+          <DialogContent>
+            <Box mt={2}>
+              <PreviousConditionSelector
+                selectedId={selectedPreviousConditionId}
+                onChange={handlePreviousConditionSelect}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handlePreviousConditionCancel}>Cancel</Button>
+            <Button 
+              onClick={handlePreviousConditionConfirm}
+              variant="contained"
+              disabled={!selectedPreviousConditionId}
+            >
+              Add Condition
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </>
   );
 };

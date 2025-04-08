@@ -12,6 +12,12 @@ const ConditionBuilderDemo: React.FC = () => {
     // For example, send it to an API, store it in state, etc.
   };
 
+  const handleConditionSelected = (json: string, sql: string) => {
+    console.log('Selected condition:');
+    console.log('JSON:', json);
+    console.log('SQL:', sql);
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <h1>Condition Builder Demo</h1>
@@ -20,6 +26,7 @@ const ConditionBuilderDemo: React.FC = () => {
         <ConditionBuilder 
           buttonText="Filter Users" 
           onConditionSaved={handleConditionSaved}
+          onConditionSelected={handleConditionSelected}
           config={conditionBuilderConfig}
         />
       </div>
@@ -28,6 +35,7 @@ const ConditionBuilderDemo: React.FC = () => {
         <ConditionBuilder 
           buttonText="Filter Orders" 
           onConditionSaved={handleConditionSaved}
+          onConditionSelected={handleConditionSelected}
           config={conditionBuilderConfig}
         />
       </div>

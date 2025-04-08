@@ -7,6 +7,7 @@ import { ConditionBuilderConfig } from './ConditionBuilderContext';
 interface ConditionBuilderProps {
   buttonText?: string;
   onConditionSaved?: (condition: SavedCondition) => void;
+  onConditionSelected?: (json: string, sql: string) => void;
   config: ConditionBuilderConfig;
   initialSavedConditions?: SavedCondition[];
 }
@@ -14,6 +15,7 @@ interface ConditionBuilderProps {
 export const ConditionBuilder: React.FC<ConditionBuilderProps> = ({ 
   buttonText, 
   onConditionSaved,
+  onConditionSelected,
   config,
   initialSavedConditions
 }) => {
@@ -24,7 +26,8 @@ export const ConditionBuilder: React.FC<ConditionBuilderProps> = ({
     >
       <ConditionBuilderButton 
         buttonText={buttonText} 
-        onConditionSaved={onConditionSaved} 
+        onConditionSaved={onConditionSaved}
+        onConditionSelected={onConditionSelected}
       />
     </ConditionBuilderProvider>
   );

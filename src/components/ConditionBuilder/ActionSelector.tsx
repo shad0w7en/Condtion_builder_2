@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   DialogTitle, 
   DialogContent, 
@@ -11,22 +11,43 @@ import {
   Typography
 } from '@mui/material';
 import { useConditionBuilder } from './ConditionBuilderContext';
+import SelectConditionDialog from './SelectConditionDialog';
+import { SavedCondition } from '../../types';
 
 interface ActionSelectorProps {
   onCreateNew: () => void;
   onBack: () => void;
+  onSelect?: (json: string, sql: string) => void;
 }
 
-const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) => {
+const ActionSelector: React.FC<ActionSelectorProps> = ({ 
+  onCreateNew, 
+  onBack,
+  onSelect
+}) => {
   const { selectedTable, savedConditions, loadSavedCondition } = useConditionBuilder();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedCondition, setSelectedCondition] = useState<SavedCondition | null>(null);
   
   const tableConditions = savedConditions.filter(
     c => selectedTable && c.tableId === selectedTable.id
   );
   
-  const handleEditCondition = (conditionId: string) => {
-    loadSavedCondition(conditionId);
-    onCreateNew();
+  const handleConditionClick = (condition: SavedCondition) => {
+    setSelectedCondition(condition);
+    loadSavedCondition(condition.id);
+    setDialogOpen(true);
+  };
+  
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setSelectedCondition(null);
+  };
+  
+  const handleDialogConfirm = (json: string, sql: string) => {
+    if (onSelect) {
+      onSelect(json, sql);
+    }
   };
   
   return (
@@ -37,7 +58,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
       <DialogContent id="condition-builder-dialog-description">
         <Button 
           variant="contained" 
-          color="primary" 
+          color="primary"
           fullWidth 
           onClick={onCreateNew}
           style={{ marginBottom: '20px' }}
@@ -49,7 +70,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
         <Divider style={{ margin: '20px 0' }} />
         
         <Typography variant="h6">
-          Previously Saved Conditions
+          Select Condition
         </Typography>
         
         {tableConditions.length === 0 ? (
@@ -60,7 +81,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
           <List>
             {tableConditions.map((condition) => (
               <React.Fragment key={condition.id}>
-                <ListItemButton onClick={() => handleEditCondition(condition.id)}>
+                <ListItemButton onClick={() => handleConditionClick(condition)}>
                   <ListItemText 
                     primary={condition.name} 
                     secondary={
@@ -86,11 +107,13 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
           </List>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onBack} color="primary">
-          Back
-        </Button>
-      </DialogActions>
+      
+      <SelectConditionDialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        onConfirm={handleDialogConfirm}
+        condition={selectedCondition}
+      />
     </>
   );
 };

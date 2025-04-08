@@ -9,15 +9,17 @@ import { SavedCondition } from '../../types';
 interface ConditionBuilderButtonProps {
   buttonText?: string;
   onConditionSaved?: (condition: SavedCondition) => void;
+  onConditionSelected?: (json: string, sql: string) => void;
 }
 
 const ConditionBuilderButton: React.FC<ConditionBuilderButtonProps> = ({
   buttonText = 'Build Condition',
-  onConditionSaved
+  onConditionSaved,
+  onConditionSelected
 }) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'table' | 'action' | 'builder'>('table');
-  const {  setSelectedTable, setRootCondition } = useConditionBuilder();
+  const { setSelectedTable, setRootCondition, loadSavedCondition } = useConditionBuilder();
   const dialogRef = useRef<HTMLDivElement>(null);
   
   const handleOpen = () => {
@@ -52,6 +54,13 @@ const ConditionBuilderButton: React.FC<ConditionBuilderButtonProps> = ({
     handleClose();
   };
   
+  const handleConditionSelected = (json: string, sql: string) => {
+    if (onConditionSelected) {
+      onConditionSelected(json, sql);
+    }
+    handleClose();
+  };
+  
   return (
     <>
       <Button 
@@ -62,41 +71,29 @@ const ConditionBuilderButton: React.FC<ConditionBuilderButtonProps> = ({
         {buttonText}
       </Button>
       
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={handleClose}
         maxWidth="md"
         fullWidth
-        aria-labelledby="condition-builder-dialog-title"
-        aria-describedby="condition-builder-dialog-description"
-        disablePortal={false}
-        keepMounted={false}
-        disableEnforceFocus={false}
-        disableAutoFocus={false}
         ref={dialogRef}
-        container={document.body}
-        disableScrollLock={true}
-        hideBackdrop={false}
-        BackdropProps={{
-          invisible: false,
-          sx: { zIndex: -1 }
-        }}
       >
         {step === 'table' && (
           <TableSelector onTableSelected={handleTableSelected} />
         )}
         
         {step === 'action' && (
-          <ActionSelector 
-            onCreateNew={handleCreateNew} 
-            onBack={() => setStep('table')} 
+          <ActionSelector
+            onCreateNew={handleCreateNew}
+            onBack={() => setStep('table')}
+            onSelect={handleConditionSelected}
           />
         )}
         
         {step === 'builder' && (
-          <BuilderInterface 
-            onBack={() => setStep('action')} 
-            onSave={handleConditionSaved} 
+          <BuilderInterface
+            onBack={() => setStep('action')}
+            onSave={handleConditionSaved}
           />
         )}
       </Dialog>

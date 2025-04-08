@@ -1,17 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent } from '@mui/material';
 import { useConditionBuilder } from './ConditionBuilderContext';
+import SelectConditionDialog from './SelectConditionDialog';
 
 interface PreviousConditionSelectorProps {
   selectedId: string | null;
   onChange: (id: string) => void;
+  onSelect?: (json: string, sql: string) => void;
 }
 
 const PreviousConditionSelector: React.FC<PreviousConditionSelectorProps> = ({ 
   selectedId, 
-  onChange 
+  onChange,
+  onSelect
 }) => {
-  const { savedConditions, selectedTable } = useConditionBuilder();
+  const { savedConditions, selectedTable, loadSavedCondition } = useConditionBuilder();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
   
   // Filter conditions for the current table
   const tableConditions = savedConditions.filter(
@@ -19,28 +24,52 @@ const PreviousConditionSelector: React.FC<PreviousConditionSelectorProps> = ({
   );
   
   const handleChange = (event: SelectChangeEvent) => {
-    onChange(event.target.value);
+    const conditionId = event.target.value;
+    setSelectedCondition(conditionId);
+    onChange(conditionId);
+    loadSavedCondition(conditionId);
+    setDialogOpen(true);
+  };
+  
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
+  
+  const handleDialogConfirm = (json: string, sql: string) => {
+    if (onSelect) {
+      onSelect(json, sql);
+    }
+    setDialogOpen(false);
   };
   
   return (
-    <FormControl fullWidth>
-      <InputLabel>Previous Condition</InputLabel>
-      <Select
-        value={selectedId || ''}
-        onChange={handleChange}
-        label="Previous Condition"
-      >
-        {tableConditions.length === 0 ? (
-          <MenuItem disabled>No saved conditions available</MenuItem>
-        ) : (
-          tableConditions.map(condition => (
-            <MenuItem key={condition.id} value={condition.id}>
-              {condition.name}
-            </MenuItem>
-          ))
-        )}
-      </Select>
-    </FormControl>
+    <>
+      <FormControl fullWidth>
+        <InputLabel>Select Condition</InputLabel>
+        <Select
+          value={selectedId || ''}
+          onChange={handleChange}
+          label="Select Condition"
+        >
+          {tableConditions.length === 0 ? (
+            <MenuItem disabled>No saved conditions available</MenuItem>
+          ) : (
+            tableConditions.map(condition => (
+              <MenuItem key={condition.id} value={condition.id}>
+                {condition.name}
+              </MenuItem>
+            ))
+          )}
+        </Select>
+      </FormControl>
+      
+      <SelectConditionDialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        onConfirm={handleDialogConfirm}
+        condition={selectedCondition ? savedConditions.find(c => c.id === selectedCondition) || null : null}
+      />
+    </>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import { 
   Box, 
   FormControl, 
@@ -18,9 +18,14 @@ import { useConditionBuilder } from './ConditionBuilderContext';
 interface ConditionRowProps {
   condition: SingleCondition;
   parentGroupId: string;
+  isReadOnly?: boolean;
 }
 
-const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId }) => {
+const ConditionRow: React.FC<ConditionRowProps> = ({ 
+  condition, 
+  parentGroupId,
+  isReadOnly = false 
+}) => {
   const { selectedTable, updateCondition, removeCondition } = useConditionBuilder();
   const [valueType, setValueType] = useState<'value' | 'column'>(
     condition.value.type
@@ -177,12 +182,13 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
   };
   
   // Handle enum value selection
-  const handleEnumValueChange = (event: SelectChangeEvent) => {
+  const handleEnumValueChange = (event: SelectChangeEvent<string[]>, child: ReactNode) => {
+    const newValue = event.target.value;
     updateCondition({
       ...condition,
       value: {
-        ...condition.value,
-        value: event.target.value
+        type: 'value',
+        value: Array.isArray(newValue) ? newValue : [newValue]
       }
     });
   };
@@ -209,6 +215,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
             value={condition.value.columnReference || ''}
             onChange={handleColumnReferenceChange}
             label="Column"
+            disabled={isReadOnly}
           >
             {sameTypeColumns.map(col => (
               <MenuItem key={col.name} value={col.name}>
@@ -232,6 +239,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
               onChange={(e) => handleBetweenValueChange(0, e.target.value)}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              disabled={isReadOnly}
             />
             <TextField
               label="To"
@@ -240,6 +248,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
               onChange={(e) => handleBetweenValueChange(1, e.target.value)}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              disabled={isReadOnly}
             />
           </Box>
         );
@@ -248,65 +257,21 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
       case 'NOT IN':
         if (condition.column.dataType === 'enum' && condition.column.enumValues) {
           return (
-            <Autocomplete
-              multiple
-              options={condition.column.enumValues}
-              value={Array.isArray(condition.value.value) ? condition.value.value : []}
-              onChange={(_, newValue) => handleInValueChange(newValue)}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    label={option}
-                    {...getTagProps({ index })}
-                  />
-                ))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Values"
-                  placeholder="Add values"
-                />
-              )}
-            />
-          );
-        } else {
-          return (
-            <TextField
-              label="Values (comma separated)"
-              value={Array.isArray(condition.value.value) ? condition.value.value.join(', ') : condition.value.value || ''}
-              onChange={(e) => handleInValueChange(e.target.value.split(',').map(v => v.trim()))}
-              fullWidth
-            />
-          );
-        }
-          
-      default:
-        if (condition.column.dataType === 'boolean') {
-          return (
             <FormControl fullWidth>
-              <InputLabel>Value</InputLabel>
-              <Select
-                value={condition.value.value === null ? '' : String(condition.value.value)}
-                onChange={(e) => updateCondition({
-                  ...condition,
-                  value: { ...condition.value, value: e.target.value === 'true' }
-                })}
-                label="Value"
-              >
-                <MenuItem value="true">True</MenuItem>
-                <MenuItem value="false">False</MenuItem>
-              </Select>
-            </FormControl>
-          );
-        } else if (condition.column.dataType === 'enum' && condition.column.enumValues) {
-          return (
-            <FormControl fullWidth>
-              <InputLabel>Value</InputLabel>
-              <Select
-                value={condition.value.value || ''}
-                onChange={handleEnumValueChange}
-                label="Value"
+              <InputLabel>Values</InputLabel>
+              <Select<string[]>
+                multiple
+                value={Array.isArray(condition.value.value) ? condition.value.value : []}
+                onChange={(event) => handleEnumValueChange(event, null)}
+                label="Values"
+                disabled={isReadOnly}
+                renderValue={(selected: string[]) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip key={value} label={value} />
+                    ))}
+                  </Box>
+                )}
               >
                 {condition.column.enumValues.map(value => (
                   <MenuItem key={value} value={value}>
@@ -316,91 +281,135 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
               </Select>
             </FormControl>
           );
-        } else if (condition.column.dataType === 'date') {
+        }
+        
+        return (
+          <Autocomplete
+            multiple
+            freeSolo
+            options={[]}
+            value={Array.isArray(condition.value.value) ? condition.value.value : []}
+            onChange={(_, newValue) => handleInValueChange(newValue)}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
+                  label={option}
+                  {...getTagProps({ index })}
+                />
+              ))
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Values"
+                disabled={isReadOnly}
+              />
+            )}
+            disabled={isReadOnly}
+          />
+        );
+        
+      default:
+        if (condition.column.dataType === 'enum' && condition.column.enumValues) {
           return (
-            <TextField
-              label="Value"
-              type="date"
-              value={condition.value.value || ''}
-              onChange={handleValueChange}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            />
-          );
-        } else if (condition.column.dataType === 'integer' || condition.column.dataType === 'number') {
-          return (
-            <TextField
-              label="Value"
-              type="number"
-              value={condition.value.value || ''}
-              onChange={handleValueChange}
-              fullWidth
-            />
-          );
-        } else {
-          return (
-            <TextField
-              label="Value"
-              value={condition.value.value || ''}
-              onChange={handleValueChange}
-              fullWidth
-            />
+            <FormControl fullWidth>
+              <InputLabel>Value</InputLabel>
+              <Select
+                value={condition.value.value || ''}
+                onChange={(event) => handleEnumValueChange(event, null)}
+                label="Value"
+                disabled={isReadOnly}
+              >
+                {condition.column.enumValues.map(value => (
+                  <MenuItem key={value} value={value}>
+                    {value}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           );
         }
+        
+        return (
+          <TextField
+            label="Value"
+            type={condition.column.dataType === 'date' ? 'date' : 'text'}
+            value={condition.value.value || ''}
+            onChange={handleValueChange}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            disabled={isReadOnly}
+          />
+        );
     }
   };
   
-  if (!selectedTable) return null;
-  
   return (
-    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
+    <Box display="flex" gap={1} alignItems="center" width="100%">
       <FormControl sx={{ minWidth: 200 }}>
         <InputLabel>Column</InputLabel>
         <Select
           value={condition.column.name}
           onChange={handleColumnChange}
           label="Column"
+          disabled={isReadOnly}
         >
-          {selectedTable?.columns.map(col => (
-            <MenuItem key={col.name} value={col.name}>
-              {col.displayName}
+          {selectedTable?.columns.map(column => (
+            <MenuItem key={column.name} value={column.name}>
+              {column.displayName}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
-
+      
       <FormControl sx={{ minWidth: 120 }}>
         <InputLabel>Operator</InputLabel>
         <Select
           value={condition.operator}
           onChange={handleOperatorChange}
           label="Operator"
+          disabled={isReadOnly}
         >
-          {getValidOperators(condition.column).map(op => (
-            <MenuItem key={op} value={op}>
-              {op}
+          {getValidOperators(condition.column).map(operator => (
+            <MenuItem key={operator} value={operator}>
+              {operator}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
-
-      <FormControl sx={{ minWidth: 120 }}>
-        <InputLabel>Value Type</InputLabel>
-        <Select
-          value={valueType}
-          onChange={handleValueTypeChange}
-          label="Value Type"
+      
+      {condition.operator !== 'IS NULL' && condition.operator !== 'IS NOT NULL' && (
+        <FormControl sx={{ minWidth: 100 }}>
+          <InputLabel>Type</InputLabel>
+          <Select
+            value={valueType}
+            onChange={handleValueTypeChange}
+            label="Type"
+            disabled={isReadOnly}
+          >
+            <MenuItem value="value">Value</MenuItem>
+            <MenuItem value="column">Column</MenuItem>
+          </Select>
+        </FormControl>
+      )}
+      
+      <Box flex={1}>
+        {renderValueInput()}
+      </Box>
+      
+      {!isReadOnly && (
+        <IconButton 
+          onClick={handleDeleteCondition}
+          sx={{ 
+            color: 'error.main',
+            '&:hover': {
+              backgroundColor: 'rgba(211, 47, 47, 0.04)'
+            }
+          }}
         >
-          <MenuItem value="value">Value</MenuItem>
-          <MenuItem value="column">Column</MenuItem>
-        </Select>
-      </FormControl>
-
-      {renderValueInput()}
-
-      <IconButton onClick={handleDeleteCondition} color="error">
-        <DeleteIcon />
-      </IconButton>
+          <DeleteIcon />
+        </IconButton>
+      )}
     </Box>
   );
 };
