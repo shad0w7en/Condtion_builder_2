@@ -20,7 +20,6 @@ import HistoryIcon from '@mui/icons-material/History';
 import { useConditionBuilder } from './ConditionBuilderContext';
 import { ConditionGroup as ConditionGroupType, SingleCondition, LogicalOperator } from '../../types';
 import ConditionRow from './ConditionRow';
-import PreviousConditionSelector from './PreviousConditionSelector';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ConditionGroupProps {
@@ -237,10 +236,19 @@ const ConditionGroup: React.FC<ConditionGroupProps> = ({
           <DialogTitle>Select Previous Condition</DialogTitle>
           <DialogContent>
             <Box mt={2}>
-              <PreviousConditionSelector
-                selectedId={selectedPreviousConditionId}
-                onChange={handlePreviousConditionSelect}
-              />
+              <Select
+                value={selectedPreviousConditionId || ''}
+                onChange={(e) => handlePreviousConditionSelect(e.target.value as string)}
+                fullWidth
+              >
+                {savedConditions
+                  .filter(c => selectedTable && c.tableId === selectedTable.id)
+                  .map(condition => (
+                    <MenuItem key={condition.id} value={condition.id}>
+                      {condition.name}
+                    </MenuItem>
+                  ))}
+              </Select>
             </Box>
           </DialogContent>
           <DialogActions>
