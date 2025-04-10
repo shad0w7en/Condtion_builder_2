@@ -42,6 +42,7 @@ export interface Column {
   export interface ConditionGroup {
     id: string;
     originalId?: string;
+    name?: string;
     type: 'group';
     logicalOperator: LogicalOperator;
     conditions: (SingleCondition | ConditionGroup)[];

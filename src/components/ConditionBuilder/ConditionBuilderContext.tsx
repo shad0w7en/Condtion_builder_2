@@ -388,11 +388,14 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
   const generateJSON = (): string => {
     const processCondition = (condition: any): any => {
       if (condition.type === 'group') {
-        return {
+        const processedGroup = {
           ...condition,
           id: condition.originalId || '', // Use original ID if exists, otherwise empty
+          name: condition.name, // Use the name provided by the user
           conditions: condition.conditions.map(processCondition)
         };
+        
+        return processedGroup;
       } else {
         return {
           ...condition,
@@ -402,26 +405,48 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     };
 
     const processedRoot = processCondition(rootCondition);
-    return JSON.stringify(processedRoot, null, 2);
+    
+    // Ensure the name is set at the root level
+    const finalJson = {
+      ...processedRoot,
+      name: rootCondition.name // Use the name from the root condition
+    };
+    
+    return JSON.stringify(finalJson, null, 2);
   };
   
   // Function to save a condition with a name
   const saveCondition = async (name: string): Promise<SavedCondition> => {
+    if (!name || name.trim() === '') {
+      throw new Error('Condition name is required');
+    }
+
+    const trimmedName = name.trim();
+    
+    // Create a new root condition with the name
+    const newRootCondition = {
+      ...rootCondition,
+      name: trimmedName
+    };
+    
+    // Update the root condition state
+    setRootCondition(newRootCondition);
+
+    // Generate SQL and JSON using the new root condition
     const sql = generateSQL();
     const json = generateJSON();
     
     const newSavedCondition: SavedCondition = {
       id: `saved-${uuidv4()}`,
-      name,
+      name: trimmedName,
       tableId: selectedTable?.id || '',
-      condition: rootCondition,
+      condition: newRootCondition,
       sqlRepresentation: sql,
       jsonRepresentation: json,
       createdAt: new Date(),
       updatedAt: new Date()
     };
     
-    // In a real app, you would save this to a backend
     setSavedConditions(prev => [...prev, newSavedCondition]);
     
     return newSavedCondition;
