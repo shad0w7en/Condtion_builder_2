@@ -262,25 +262,9 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     const savedCondition = savedConditions.find(c => c.id === savedConditionId);
     if (!savedCondition) return;
     
-    // Create a deep copy of the condition with new IDs
-    const createNewIds = (condition: any): any => {
-      if (condition.type === 'group') {
-        return {
-          ...condition,
-          id: `group-${uuidv4()}`,
-          conditions: condition.conditions.map(createNewIds)
-        };
-      } else {
-        return {
-          ...condition,
-          id: `cond-${uuidv4()}`
-        };
-      }
-    };
+    // Generate new IDs for the saved condition
+    const conditionWithNewIds = generateNewIds(savedCondition.condition);
     
-    const conditionWithNewIds = createNewIds(savedCondition.condition);
-    
-    // Add the saved condition directly to the parent group
     setRootCondition(prevRoot => {
       const updateGroup = (group: ConditionGroup): ConditionGroup => {
         if (group.id === parentGroupId) {
@@ -384,7 +368,24 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
   
   // Function to generate JSON from the current condition
   const generateJSON = (): string => {
-    return JSON.stringify(rootCondition, null, 2);
+    const stripIds = (condition: any): any => {
+      if (condition.type === 'group') {
+        return {
+          type: 'group',
+          logicalOperator: condition.logicalOperator,
+          conditions: condition.conditions.map(stripIds)
+        };
+      } else {
+        return {
+          column: condition.column,
+          operator: condition.operator,
+          value: condition.value
+        };
+      }
+    };
+
+    const cleanedCondition = stripIds(rootCondition);
+    return JSON.stringify(cleanedCondition, null, 2);
   };
   
   // Function to save a condition with a name
@@ -392,11 +393,29 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     const sql = generateSQL();
     const json = generateJSON();
     
+    const stripIds = (condition: ConditionGroup | SingleCondition): any => {
+      if ('type' in condition && condition.type === 'group') {
+        const group = condition as ConditionGroup;
+        return {
+          type: 'group',
+          logicalOperator: group.logicalOperator,
+          conditions: group.conditions.map(stripIds)
+        };
+      } else {
+        const single = condition as SingleCondition;
+        return {
+          column: single.column,
+          operator: single.operator,
+          value: single.value
+        };
+      }
+    };
+
     const newSavedCondition: SavedCondition = {
       id: `saved-${uuidv4()}`,
       name,
       tableId: selectedTable?.id || '',
-      condition: rootCondition,
+      condition: stripIds(rootCondition) as ConditionGroup,
       sqlRepresentation: sql,
       jsonRepresentation: json,
       createdAt: new Date(),
@@ -409,27 +428,31 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     return newSavedCondition;
   };
   
+  // Function to generate new IDs for a condition
+  const generateNewIds = (condition: any): any => {
+    if (condition.type === 'group') {
+      return {
+        id: `group-${uuidv4()}`,
+        type: 'group',
+        logicalOperator: condition.logicalOperator,
+        conditions: condition.conditions.map(generateNewIds)
+      };
+    } else {
+      return {
+        id: `cond-${uuidv4()}`,
+        column: condition.column,
+        operator: condition.operator,
+        value: condition.value
+      };
+    }
+  };
+
   // Function to load a saved condition
   const loadSavedCondition = (conditionId: string) => {
     const condition = savedConditions.find(c => c.id === conditionId);
     if (condition) {
-      // Create a deep copy of the condition with new IDs
-      const createNewIds = (condition: any): any => {
-        if (condition.type === 'group') {
-          return {
-            ...condition,
-            id: `group-${uuidv4()}`,
-            conditions: condition.conditions.map(createNewIds)
-          };
-        } else {
-          return {
-            ...condition,
-            id: `cond-${uuidv4()}`
-          };
-        }
-      };
-      
-      const conditionWithNewIds = createNewIds(condition.condition);
+      // Generate new IDs for the loaded condition
+      const conditionWithNewIds = generateNewIds(condition.condition);
       setRootCondition(conditionWithNewIds);
     }
   };
