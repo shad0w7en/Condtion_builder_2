@@ -51,6 +51,9 @@ interface ConditionBuilderContextType {
 
   // Add config to context
   config: ConditionBuilderConfig;
+
+  // Add new function to context
+  loadConditionFromJSON: (jsonString: string) => void;
 }
 
 const ConditionBuilderContext = createContext<ConditionBuilderContextType | null>(null);
@@ -457,6 +460,17 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     }
   };
   
+  // Function to load a condition from JSON string
+  const loadConditionFromJSON = (jsonString: string) => {
+    try {
+      const parsedCondition = JSON.parse(jsonString);
+      const conditionWithNewIds = generateNewIds(parsedCondition);
+      setRootCondition(conditionWithNewIds);
+    } catch (error) {
+      console.error('Error loading condition from JSON:', error);
+    }
+  };
+  
   const value = {
     selectedTable,
     setSelectedTable,
@@ -475,6 +489,7 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     generateJSON,
     saveCondition,
     loadSavedCondition,
+    loadConditionFromJSON,
     config
   };
   

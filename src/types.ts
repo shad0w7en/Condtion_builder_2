@@ -29,20 +29,26 @@ export interface Column {
     columnDataType?: string;
   }
   
-  export interface SingleCondition {
-    id: string;
+  // Base interface for all conditions
+  export interface BaseCondition {
+    id?: string; // Optional since it's only needed for UI state
+  }
+  
+  export interface SingleCondition extends BaseCondition {
+    type: 'condition';
     column: Column;
     operator: Operator;
     value: ConditionValue;
-    logicalOperator?: LogicalOperator;
   }
   
-  export interface ConditionGroup {
-    id: string;
+  export interface ConditionGroup extends BaseCondition {
     type: 'group';
     logicalOperator: LogicalOperator;
     conditions: (SingleCondition | ConditionGroup)[];
   }
+  
+  // Union type for any condition
+  export type Condition = SingleCondition | ConditionGroup;
   
   export interface SavedCondition {
     id: string;
