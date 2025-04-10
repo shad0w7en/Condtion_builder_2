@@ -67,12 +67,12 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
   initialSavedConditions
 }) => {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  const [rootCondition, setRootCondition] = useState<ConditionGroup>({
+  const [rootCondition, setRootCondition] = useState<ConditionGroup>(() => ({
     id: 'root',
     type: 'group',
     logicalOperator: 'AND',
     conditions: []
-  });
+  }));
   const [savedConditions, setSavedConditions] = useState<SavedCondition[]>(
     initialSavedConditions || mockSavedConditions
   );
@@ -86,8 +86,12 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
           const isFirstCondition = group.conditions.length === 0;
           const newCondition = isFirstCondition ? {
             ...condition,
+            id: `cond-${uuidv4()}`,
             logicalOperator: group.logicalOperator
-          } : condition;
+          } : {
+            ...condition,
+            id: `cond-${uuidv4()}`
+          };
 
           return {
             ...group,
@@ -258,13 +262,31 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     const savedCondition = savedConditions.find(c => c.id === savedConditionId);
     if (!savedCondition) return;
     
+    // Create a deep copy of the condition with new IDs
+    const createNewIds = (condition: any): any => {
+      if (condition.type === 'group') {
+        return {
+          ...condition,
+          id: `group-${uuidv4()}`,
+          conditions: condition.conditions.map(createNewIds)
+        };
+      } else {
+        return {
+          ...condition,
+          id: `cond-${uuidv4()}`
+        };
+      }
+    };
+    
+    const conditionWithNewIds = createNewIds(savedCondition.condition);
+    
     // Add the saved condition directly to the parent group
     setRootCondition(prevRoot => {
       const updateGroup = (group: ConditionGroup): ConditionGroup => {
         if (group.id === parentGroupId) {
           return {
             ...group,
-            conditions: [...group.conditions, savedCondition.condition]
+            conditions: [...group.conditions, conditionWithNewIds]
           };
         }
         
@@ -391,7 +413,24 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
   const loadSavedCondition = (conditionId: string) => {
     const condition = savedConditions.find(c => c.id === conditionId);
     if (condition) {
-      setRootCondition(condition.condition);
+      // Create a deep copy of the condition with new IDs
+      const createNewIds = (condition: any): any => {
+        if (condition.type === 'group') {
+          return {
+            ...condition,
+            id: `group-${uuidv4()}`,
+            conditions: condition.conditions.map(createNewIds)
+          };
+        } else {
+          return {
+            ...condition,
+            id: `cond-${uuidv4()}`
+          };
+        }
+      };
+      
+      const conditionWithNewIds = createNewIds(condition.condition);
+      setRootCondition(conditionWithNewIds);
     }
   };
   
