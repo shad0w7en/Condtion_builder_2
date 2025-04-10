@@ -260,13 +260,33 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     const savedCondition = savedConditions.find(c => c.id === savedConditionId);
     if (!savedCondition) return;
     
-    // Add the saved condition directly to the parent group
+    // Create new IDs for rendering while preserving original IDs
+    const createNewIds = (condition: any): any => {
+      if (condition.type === 'group') {
+        return {
+          ...condition,
+          id: `group-${uuidv4()}`, // New ID for rendering
+          originalId: condition.id, // Preserve original ID
+          conditions: condition.conditions.map(createNewIds)
+        };
+      } else {
+        return {
+          ...condition,
+          id: `cond-${uuidv4()}`, // New ID for rendering
+          originalId: condition.id // Preserve original ID
+        };
+      }
+    };
+    
+    const conditionWithNewIds = createNewIds(savedCondition.condition);
+    
+    // Add the condition with new IDs to the parent group
     setRootCondition(prevRoot => {
       const updateGroup = (group: ConditionGroup): ConditionGroup => {
         if (group.id === parentGroupId) {
           return {
             ...group,
-            conditions: [...group.conditions, savedCondition.condition]
+            conditions: [...group.conditions, conditionWithNewIds]
           };
         }
         
@@ -364,29 +384,17 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
   
   // Function to generate JSON from the current condition
   const generateJSON = (): string => {
-    // Create a map of all saved condition IDs for quick lookup
-    const savedIds = new Set<string>();
-    savedConditions.forEach(saved => {
-      const collectIds = (condition: any) => {
-        savedIds.add(condition.id);
-        if (condition.type === 'group') {
-          condition.conditions.forEach(collectIds);
-        }
-      };
-      collectIds(saved.condition);
-    });
-
     const processCondition = (condition: any): any => {
       if (condition.type === 'group') {
         return {
           ...condition,
-          id: savedIds.has(condition.id) ? condition.id : '', // Keep original ID if saved, empty if new
+          id: condition.originalId || '', // Use original ID if exists, otherwise empty
           conditions: condition.conditions.map(processCondition)
         };
       } else {
         return {
           ...condition,
-          id: savedIds.has(condition.id) ? condition.id : '' // Keep original ID if saved, empty if new
+          id: condition.originalId || '' // Use original ID if exists, otherwise empty
         };
       }
     };

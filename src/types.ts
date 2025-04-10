@@ -31,17 +31,21 @@ export interface Column {
   
   export interface SingleCondition {
     id: string;
+    originalId?: string;
     column: Column;
     operator: Operator;
     value: ConditionValue;
     logicalOperator?: LogicalOperator;
+    readonly?: boolean;
   }
   
   export interface ConditionGroup {
     id: string;
+    originalId?: string;
     type: 'group';
     logicalOperator: LogicalOperator;
     conditions: (SingleCondition | ConditionGroup)[];
+    readonly?: boolean;
   }
   
   export interface SavedCondition {
