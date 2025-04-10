@@ -54,45 +54,28 @@ const ConditionBuilderButton: React.FC<ConditionBuilderButtonProps> = ({
   
   return (
     <>
-      <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={handleOpen}
-      >
+      <Button variant="contained" color="primary" onClick={handleOpen}>
         {buttonText}
       </Button>
-      
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={handleClose}
-        maxWidth="md"
-        fullWidth
         aria-labelledby="condition-builder-dialog-title"
         aria-describedby="condition-builder-dialog-description"
-        disablePortal={false}
-        keepMounted={false}
-        disableEnforceFocus={false}
-        disableAutoFocus={false}
+        maxWidth="md"
+        fullWidth
         ref={dialogRef}
-        container={document.body}
-        disableScrollLock={true}
-        hideBackdrop={false}
-        BackdropProps={{
-          invisible: false,
-          sx: { zIndex: -1 }
-        }}
       >
         {step === 'table' && (
           <TableSelector onTableSelected={handleTableSelected} />
         )}
-        
         {step === 'action' && (
           <ActionSelector 
             onCreateNew={handleCreateNew} 
             onBack={() => setStep('table')} 
+            onClose={handleClose}
           />
         )}
-        
         {step === 'builder' && (
           <BuilderInterface 
             onBack={() => setStep('action')} 

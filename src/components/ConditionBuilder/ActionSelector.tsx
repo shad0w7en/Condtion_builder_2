@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   DialogTitle, 
   DialogContent, 
@@ -8,22 +8,41 @@ import {
   ListItemButton,
   ListItemText, 
   Divider,
-  Typography
+  Typography,
+  IconButton,
+  Box,
+  Dialog
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import { useConditionBuilder } from './ConditionBuilderContext';
+import { SavedCondition } from '../../types';
 
 interface ActionSelectorProps {
   onCreateNew: () => void;
   onBack: () => void;
+  onClose: () => void;
 }
 
-const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) => {
+const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack, onClose }) => {
   const { selectedTable, savedConditions = [], loadSavedCondition } = useConditionBuilder();
+  const [selectedCondition, setSelectedCondition] = useState<SavedCondition | null>(null);
   
   const tableConditions = savedConditions.filter(
     c => selectedTable && c.tableId === selectedTable.id
   );
   
+  const handleSelectCondition = (condition: SavedCondition) => {
+    setSelectedCondition(condition);
+  };
+
+  const handleConfirmUse = () => {
+    if (selectedCondition) {
+      loadSavedCondition(selectedCondition.id);
+      setSelectedCondition(null);
+      onClose();
+    }
+  };
+
   const handleEditCondition = (conditionId: string) => {
     loadSavedCondition(conditionId);
     onCreateNew();
@@ -49,7 +68,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
         <Divider style={{ margin: '20px 0' }} />
         
         <Typography variant="h6">
-          Previously Saved Conditions
+          Select Condition
         </Typography>
         
         {tableConditions.length === 0 ? (
@@ -60,7 +79,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
           <List>
             {tableConditions.map((condition) => (
               <React.Fragment key={condition.id}>
-                <ListItemButton onClick={() => handleEditCondition(condition.id)}>
+                <ListItemButton onClick={() => handleSelectCondition(condition)}>
                   <ListItemText 
                     primary={condition.name} 
                     secondary={
@@ -79,6 +98,16 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
                       </Typography>
                     } 
                   />
+                  <IconButton 
+                    edge="end" 
+                    aria-label="edit"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditCondition(condition.id);
+                    }}
+                  >
+                    <EditIcon />
+                  </IconButton>
                 </ListItemButton>
                 <Divider />
               </React.Fragment>
@@ -91,6 +120,38 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) 
           Back
         </Button>
       </DialogActions>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={!!selectedCondition}
+        onClose={() => setSelectedCondition(null)}
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-description"
+      >
+        <DialogTitle id="confirm-dialog-title">
+          Use Selected Condition?
+        </DialogTitle>
+        <DialogContent>
+          {selectedCondition && (
+            <>
+              <Typography variant="body1" gutterBottom>
+                <strong>Name:</strong> {selectedCondition.name}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                <strong>SQL:</strong> {selectedCondition.sqlRepresentation}
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedCondition(null)} color="primary">
+            Back
+          </Button>
+          <Button onClick={handleConfirmUse} color="primary" variant="contained">
+            Use Condition
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
