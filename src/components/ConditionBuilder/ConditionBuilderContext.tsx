@@ -57,12 +57,14 @@ interface ConditionBuilderProviderProps {
   children: ReactNode;
   config: ConditionBuilderConfig;
   savedConditions: SavedCondition[];
+  onConditionLoaded?: (condition: SavedCondition) => void;
 }
 
 export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> = ({ 
   children,
   config,
-  savedConditions: initialSavedConditions
+  savedConditions: initialSavedConditions,
+  onConditionLoaded
 }) => {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [rootCondition, setRootCondition] = useState<ConditionGroup>(() => ({
@@ -462,6 +464,13 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     const condition = savedConditions.find(c => c.id === conditionId);
     if (condition) {
       setRootCondition(condition.condition);
+      const table = config.tables.find(t => t.id === condition.tableId);
+      if (table) {
+        setSelectedTable(table);
+      }
+      if (onConditionLoaded) {
+        onConditionLoaded(condition);
+      }
     }
   };
   
