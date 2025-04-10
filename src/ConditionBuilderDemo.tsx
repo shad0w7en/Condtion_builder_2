@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ConditionBuilder } from './components/ConditionBuilder';
 import { conditionBuilderConfig } from './config/tables';
 import { SavedCondition } from './types';
+import { mockSavedConditions } from './mockData';
 
 const ConditionBuilderDemo: React.FC = () => {
+  const [savedConditions, setSavedConditions] = useState<SavedCondition[]>(mockSavedConditions);
+
   const handleConditionSaved = (condition: SavedCondition) => {
     console.log('Saved condition:', condition);
     console.log('SQL:', condition.sqlRepresentation);
     console.log('JSON:', condition.jsonRepresentation);
-    // Here you can handle the saved condition according to your needs
-    // For example, send it to an API, store it in state, etc.
+    // Update the saved conditions state
+    setSavedConditions(prev => [...prev, condition]);
   };
 
   return (
@@ -21,6 +24,7 @@ const ConditionBuilderDemo: React.FC = () => {
           buttonText="Filter Users" 
           onConditionSaved={handleConditionSaved}
           config={conditionBuilderConfig}
+          savedConditions={savedConditions}
         />
       </div>
       <div>
@@ -29,6 +33,7 @@ const ConditionBuilderDemo: React.FC = () => {
           buttonText="Filter Orders" 
           onConditionSaved={handleConditionSaved}
           config={conditionBuilderConfig}
+          savedConditions={savedConditions}
         />
       </div>
     </div>

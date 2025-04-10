@@ -18,7 +18,7 @@ interface ActionSelectorProps {
 }
 
 const ActionSelector: React.FC<ActionSelectorProps> = ({ onCreateNew, onBack }) => {
-  const { selectedTable, savedConditions, loadSavedCondition } = useConditionBuilder();
+  const { selectedTable, savedConditions = [], loadSavedCondition } = useConditionBuilder();
   
   const tableConditions = savedConditions.filter(
     c => selectedTable && c.tableId === selectedTable.id

@@ -6,7 +6,6 @@ import {
   SavedCondition,
   LogicalOperator
 } from '../../types';
-import { mockSavedConditions } from '../../mockData';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ConditionBuilderConfig {
@@ -49,7 +48,6 @@ interface ConditionBuilderContextType {
   saveCondition: (name: string) => Promise<SavedCondition>;
   loadSavedCondition: (conditionId: string) => void;
 
-  // Add config to context
   config: ConditionBuilderConfig;
 }
 
@@ -58,13 +56,13 @@ const ConditionBuilderContext = createContext<ConditionBuilderContextType | null
 interface ConditionBuilderProviderProps {
   children: ReactNode;
   config: ConditionBuilderConfig;
-  initialSavedConditions?: SavedCondition[];
+  savedConditions: SavedCondition[];
 }
 
 export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> = ({ 
   children,
   config,
-  initialSavedConditions
+  savedConditions: initialSavedConditions
 }) => {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [rootCondition, setRootCondition] = useState<ConditionGroup>(() => ({
@@ -73,8 +71,8 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     logicalOperator: 'AND',
     conditions: []
   }));
-  const [savedConditions, setSavedConditions] = useState<SavedCondition[]>(
-    initialSavedConditions || mockSavedConditions
+  const [savedConditions, setSavedConditions] = useState<SavedCondition[]>(() => 
+    Array.isArray(initialSavedConditions) ? initialSavedConditions : []
   );
   
   // Function to add a condition to a specific group
