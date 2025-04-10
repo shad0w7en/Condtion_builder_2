@@ -260,20 +260,22 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     const savedCondition = savedConditions.find(c => c.id === savedConditionId);
     if (!savedCondition) return;
     
-    // Create new IDs for rendering while preserving original IDs
+    // Create new IDs for rendering while preserving original IDs and marking as readonly
     const createNewIds = (condition: any): any => {
       if (condition.type === 'group') {
         return {
           ...condition,
           id: `group-${uuidv4()}`, // New ID for rendering
           originalId: condition.id, // Preserve original ID
+          readonly: true, // Mark as readonly
           conditions: condition.conditions.map(createNewIds)
         };
       } else {
         return {
           ...condition,
           id: `cond-${uuidv4()}`, // New ID for rendering
-          originalId: condition.id // Preserve original ID
+          originalId: condition.id, // Preserve original ID
+          readonly: true // Mark as readonly
         };
       }
     };

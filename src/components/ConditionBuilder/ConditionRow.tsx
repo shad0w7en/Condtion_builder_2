@@ -353,54 +353,142 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
   if (!selectedTable) return null;
   
   return (
-    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
-      <FormControl sx={{ minWidth: 200 }}>
+    <Box display="flex" alignItems="center" gap={1}>
+      <FormControl size="small" sx={{ minWidth: 120 }} disabled={condition.readonly}>
         <InputLabel>Column</InputLabel>
         <Select
           value={condition.column.name}
           onChange={handleColumnChange}
           label="Column"
         >
-          {selectedTable?.columns.map(col => (
-            <MenuItem key={col.name} value={col.name}>
-              {col.displayName}
+          {selectedTable?.columns.map(column => (
+            <MenuItem key={column.name} value={column.name}>
+              {column.displayName}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      <FormControl sx={{ minWidth: 120 }}>
+      <FormControl size="small" sx={{ minWidth: 120 }} disabled={condition.readonly}>
         <InputLabel>Operator</InputLabel>
         <Select
           value={condition.operator}
           onChange={handleOperatorChange}
           label="Operator"
         >
-          {getValidOperators(condition.column).map(op => (
-            <MenuItem key={op} value={op}>
-              {op}
+          {getValidOperators(condition.column).map(operator => (
+            <MenuItem key={operator} value={operator}>
+              {operator}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      <FormControl sx={{ minWidth: 120 }}>
-        <InputLabel>Value Type</InputLabel>
-        <Select
-          value={valueType}
-          onChange={handleValueTypeChange}
-          label="Value Type"
+      {condition.operator !== 'IS NULL' && condition.operator !== 'IS NOT NULL' && (
+        <>
+          <FormControl size="small" sx={{ minWidth: 120 }} disabled={condition.readonly}>
+            <InputLabel>Value Type</InputLabel>
+            <Select
+              value={valueType}
+              onChange={handleValueTypeChange}
+              label="Value Type"
+            >
+              <MenuItem value="value">Value</MenuItem>
+              <MenuItem value="column">Column</MenuItem>
+            </Select>
+          </FormControl>
+
+          {valueType === 'value' ? (
+            condition.operator === 'BETWEEN' ? (
+              <Box display="flex" gap={1}>
+                <TextField
+                  size="small"
+                  value={Array.isArray(condition.value.value) ? condition.value.value[0] : ''}
+                  onChange={(e) => handleBetweenValueChange(0, e.target.value)}
+                  disabled={condition.readonly}
+                />
+                <TextField
+                  size="small"
+                  value={Array.isArray(condition.value.value) ? condition.value.value[1] : ''}
+                  onChange={(e) => handleBetweenValueChange(1, e.target.value)}
+                  disabled={condition.readonly}
+                />
+              </Box>
+            ) : condition.operator === 'IN' || condition.operator === 'NOT IN' ? (
+              <Autocomplete
+                multiple
+                size="small"
+                options={condition.column.enumValues || []}
+                value={Array.isArray(condition.value.value) ? condition.value.value : []}
+                onChange={(_, newValue) => handleInValueChange(newValue)}
+                renderInput={(params) => <TextField {...params} />}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      label={option}
+                      {...getTagProps({ index })}
+                      onDelete={condition.readonly ? undefined : getTagProps({ index }).onDelete}
+                    />
+                  ))
+                }
+                disabled={condition.readonly}
+              />
+            ) : condition.column.dataType === 'enum' ? (
+              <FormControl size="small" sx={{ minWidth: 120 }} disabled={condition.readonly}>
+                <InputLabel>Value</InputLabel>
+                <Select
+                  value={condition.value.value}
+                  onChange={handleEnumValueChange}
+                  label="Value"
+                >
+                  {condition.column.enumValues?.map(value => (
+                    <MenuItem key={value} value={value}>
+                      {value}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : (
+              <TextField
+                size="small"
+                value={condition.value.value}
+                onChange={handleValueChange}
+                disabled={condition.readonly}
+              />
+            )
+          ) : (
+            <FormControl size="small" sx={{ minWidth: 120 }} disabled={condition.readonly}>
+              <InputLabel>Column</InputLabel>
+              <Select
+                value={condition.value.columnReference || ''}
+                onChange={handleColumnReferenceChange}
+                label="Column"
+              >
+                {getSameTypeColumns().map(column => (
+                  <MenuItem key={column.name} value={column.name}>
+                    {column.displayName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </>
+      )}
+
+      {!condition.readonly && (
+        <IconButton 
+          size="small" 
+          onClick={handleDeleteCondition}
+          sx={{ 
+            color: 'error.main',
+            '&:hover': {
+              backgroundColor: 'rgba(211, 47, 47, 0.04)'
+            }
+          }}
         >
-          <MenuItem value="value">Value</MenuItem>
-          <MenuItem value="column">Column</MenuItem>
-        </Select>
-      </FormControl>
-
-      {renderValueInput()}
-
-      <IconButton onClick={handleDeleteCondition} color="error">
-        <DeleteIcon />
-      </IconButton>
+          <DeleteIcon />
+        </IconButton>
+      )}
     </Box>
   );
 };
