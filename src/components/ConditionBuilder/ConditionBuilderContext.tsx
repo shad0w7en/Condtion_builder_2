@@ -267,6 +267,7 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
           ...condition,
           id: `group-${uuidv4()}`, // New ID for rendering
           originalId: condition.id, // Preserve original ID
+          name: savedCondition.name, // Use the saved condition name
           readonly: true, // Mark as readonly
           conditions: condition.conditions.map(createNewIds)
         };
@@ -275,6 +276,7 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
           ...condition,
           id: `cond-${uuidv4()}`, // New ID for rendering
           originalId: condition.id, // Preserve original ID
+          name: savedCondition.name, // Use the saved condition name for single conditions too
           readonly: true // Mark as readonly
         };
       }
@@ -282,9 +284,12 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     
     const conditionWithNewIds = createNewIds(savedCondition.condition);
     
-    // Add the condition with new IDs to the parent group
     setRootCondition(prevRoot => {
       const updateGroup = (group: ConditionGroup): ConditionGroup => {
+        if (group.readonly) {
+          return group;
+        }
+
         if (group.id === parentGroupId) {
           return {
             ...group,

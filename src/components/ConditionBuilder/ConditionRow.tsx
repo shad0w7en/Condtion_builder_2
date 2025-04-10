@@ -9,7 +9,8 @@ import {
   IconButton,
   Chip,
   Autocomplete,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Paper
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { SingleCondition, Operator, Column, ConditionValue, LogicalOperator } from '../../types';
@@ -18,9 +19,10 @@ import { useConditionBuilder } from './ConditionBuilderContext';
 interface ConditionRowProps {
   condition: SingleCondition;
   parentGroupId: string;
+  hideDelete?: boolean;
 }
 
-const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId }) => {
+const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId, hideDelete }) => {
   const { selectedTable, updateCondition, removeCondition } = useConditionBuilder();
   const [valueType, setValueType] = useState<'value' | 'column'>(
     condition.value.type
@@ -191,6 +193,60 @@ const ConditionRow: React.FC<ConditionRowProps> = ({ condition, parentGroupId })
   const handleDeleteCondition = () => {
     removeCondition(condition.id, parentGroupId);
   };
+  
+  if (condition.readonly) {
+    return (
+      <Paper 
+        elevation={0}
+        sx={{ 
+          p: 2,
+          mb: 1,
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e9ecef',
+          borderRadius: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Box display="flex" alignItems="center">
+          <Box 
+            component="span" 
+            sx={{ 
+              color: 'text.secondary',
+              mr: 1,
+              fontSize: '0.875rem'
+            }}
+          >
+            Condition:
+          </Box>
+          <Box 
+            component="span" 
+            sx={{ 
+              fontWeight: 500,
+              fontSize: '0.875rem'
+            }}
+          >
+            {`${condition.column.displayName} ${condition.operator} ${condition.value.value}`}
+          </Box>
+        </Box>
+        {!hideDelete && (
+          <IconButton
+            size="small"
+            onClick={() => removeCondition(condition.id, parentGroupId)}
+            sx={{ 
+              color: 'error.main',
+              '&:hover': {
+                backgroundColor: 'rgba(211, 47, 47, 0.04)'
+              }
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        )}
+      </Paper>
+    );
+  }
   
   // Render value input based on operator and column type
   const renderValueInput = () => {

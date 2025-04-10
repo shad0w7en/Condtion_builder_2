@@ -28,13 +28,15 @@ interface ConditionGroupProps {
   parentGroupId: string;
   level: number;
   onDelete?: () => void;
+  isReadonly?: boolean;
 }
 
 const ConditionGroup: React.FC<ConditionGroupProps> = ({ 
   group, 
   parentGroupId, 
   level,
-  onDelete 
+  onDelete,
+  isReadonly
 }) => {
   const { 
     addCondition, 
@@ -204,16 +206,67 @@ const ConditionGroup: React.FC<ConditionGroupProps> = ({
           <React.Fragment key={condition.id}>
             {index > 0 && <Box my={1} />}
             {'type' in condition && condition.type === 'group' ? (
-              <ConditionGroup
-                group={condition}
-                parentGroupId={group.id}
-                level={level + 1}
-                onDelete={() => removeGroup(condition.id, group.id)}
-              />
+              condition.readonly ? (
+                <Paper 
+                  elevation={0}
+                  sx={{ 
+                    p: 2,
+                    mb: 1,
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #e9ecef',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Box display="flex" alignItems="center">
+                    <Box 
+                      component="span" 
+                      sx={{ 
+                        color: 'text.secondary',
+                        mr: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Saved Condition:
+                    </Box>
+                    <Box 
+                      component="span" 
+                      sx={{ 
+                        fontWeight: 500,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      {condition.name || 'Unnamed Condition'}
+                    </Box>
+                  </Box>
+                  <IconButton
+                    size="small"
+                    onClick={() => removeGroup(condition.id, group.id)}
+                    sx={{ 
+                      color: 'error.main',
+                      '&:hover': {
+                        backgroundColor: 'rgba(211, 47, 47, 0.04)'
+                      }
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Paper>
+              ) : (
+                <ConditionGroup
+                  group={condition}
+                  parentGroupId={group.id}
+                  level={level + 1}
+                  onDelete={isReadonly ? undefined : () => removeGroup(condition.id, group.id)}
+                />
+              )
             ) : (
               <ConditionRow
                 condition={condition as SingleCondition}
                 parentGroupId={group.id}
+                hideDelete={isReadonly}
               />
             )}
           </React.Fragment>
