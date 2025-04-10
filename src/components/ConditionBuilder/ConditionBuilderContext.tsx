@@ -260,31 +260,13 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
     const savedCondition = savedConditions.find(c => c.id === savedConditionId);
     if (!savedCondition) return;
     
-    // Create a deep copy of the condition with new IDs
-    const createNewIds = (condition: any): any => {
-      if (condition.type === 'group') {
-        return {
-          ...condition,
-          id: `group-${uuidv4()}`,
-          conditions: condition.conditions.map(createNewIds)
-        };
-      } else {
-        return {
-          ...condition,
-          id: `cond-${uuidv4()}`
-        };
-      }
-    };
-    
-    const conditionWithNewIds = createNewIds(savedCondition.condition);
-    
     // Add the saved condition directly to the parent group
     setRootCondition(prevRoot => {
       const updateGroup = (group: ConditionGroup): ConditionGroup => {
         if (group.id === parentGroupId) {
           return {
             ...group,
-            conditions: [...group.conditions, conditionWithNewIds]
+            conditions: [...group.conditions, savedCondition.condition]
           };
         }
         
@@ -382,7 +364,35 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
   
   // Function to generate JSON from the current condition
   const generateJSON = (): string => {
-    return JSON.stringify(rootCondition, null, 2);
+    // Create a map of all saved condition IDs for quick lookup
+    const savedIds = new Set<string>();
+    savedConditions.forEach(saved => {
+      const collectIds = (condition: any) => {
+        savedIds.add(condition.id);
+        if (condition.type === 'group') {
+          condition.conditions.forEach(collectIds);
+        }
+      };
+      collectIds(saved.condition);
+    });
+
+    const processCondition = (condition: any): any => {
+      if (condition.type === 'group') {
+        return {
+          ...condition,
+          id: savedIds.has(condition.id) ? condition.id : '', // Keep original ID if saved, empty if new
+          conditions: condition.conditions.map(processCondition)
+        };
+      } else {
+        return {
+          ...condition,
+          id: savedIds.has(condition.id) ? condition.id : '' // Keep original ID if saved, empty if new
+        };
+      }
+    };
+
+    const processedRoot = processCondition(rootCondition);
+    return JSON.stringify(processedRoot, null, 2);
   };
   
   // Function to save a condition with a name
@@ -411,24 +421,7 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
   const loadSavedCondition = (conditionId: string) => {
     const condition = savedConditions.find(c => c.id === conditionId);
     if (condition) {
-      // Create a deep copy of the condition with new IDs
-      const createNewIds = (condition: any): any => {
-        if (condition.type === 'group') {
-          return {
-            ...condition,
-            id: `group-${uuidv4()}`,
-            conditions: condition.conditions.map(createNewIds)
-          };
-        } else {
-          return {
-            ...condition,
-            id: `cond-${uuidv4()}`
-          };
-        }
-      };
-      
-      const conditionWithNewIds = createNewIds(condition.condition);
-      setRootCondition(conditionWithNewIds);
+      setRootCondition(condition.condition);
     }
   };
   
