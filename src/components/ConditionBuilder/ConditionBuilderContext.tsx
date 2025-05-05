@@ -337,8 +337,9 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
         }
         
         let conditionSql = '';
-        if (operator === 'BETWEEN' && Array.isArray(value.value)) {
-          conditionSql = `${column.name} BETWEEN ${formatSqlValue(value.value[0], column.dataType)} AND ${formatSqlValue(value.value[1], column.dataType)}`;
+        if (operator === 'BETWEEN' && typeof value.value === 'string') {
+          const [from, to] = value.value.split(',');
+          conditionSql = `${column.name} BETWEEN ${formatSqlValue(from, column.dataType)} AND ${formatSqlValue(to, column.dataType)}`;
         } else if (operator === 'IN' || operator === 'NOT IN') {
           const values = Array.isArray(value.value) ? value.value : [value.value];
           const formattedValues = values.map(v => formatSqlValue(v, column.dataType)).join(', ');

@@ -12,7 +12,8 @@ export const projectTables: Table[] = [
       { name: 'email', displayName: 'Email', dataType: 'string', table: 'users' },
       { name: 'age', displayName: 'Age', dataType: 'integer', table: 'users' },
       { name: 'status', displayName: 'Status', dataType: 'enum', table: 'users', enumValues: ['active', 'inactive', 'pending'] },
-      { name: 'created_at', displayName: 'Created At', dataType: 'date', table: 'users' }
+      { name: 'created_at', displayName: 'Created At', dataType: 'date', table: 'users' },
+      { name: 'score_mapping', displayName: 'Score Mapping', dataType: 'Mapping', table: 'users' }
     ]
   },
   {
@@ -36,7 +37,8 @@ export const defaultOperators = {
   integer: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS NULL', 'IS NOT NULL'],
   boolean: ['=', 'IS NULL', 'IS NOT NULL'],
   date: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS NULL', 'IS NOT NULL'],
-  enum: ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL']
+  enum: ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+  Mapping: ['=', '!='],
 };
 
 // Define custom validation rules if needed

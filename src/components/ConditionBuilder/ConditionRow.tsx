@@ -70,6 +70,14 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
       });
       setValueType('value');
     }
+    // Ensure Mapping datatype always uses value type
+    if (condition.column.dataType === 'Mapping' && valueType !== 'value') {
+      setValueType('value');
+      updateCondition({
+        ...condition,
+        value: { type: 'value', value: '' }
+      });
+    }
   }, [condition.column]);
   
   // Handle column change
@@ -155,17 +163,20 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
   
   // Handle BETWEEN values
   const handleBetweenValueChange = (index: number, value: string) => {
-    const betweenValues = Array.isArray(condition.value.value) 
-      ? [...condition.value.value] 
-      : ['', ''];
-    
+    // Convert the current value to an array for UI, but store as comma-separated string
+    let betweenValues: string[] = [];
+    if (typeof condition.value.value === 'string') {
+      betweenValues = condition.value.value.split(',');
+      if (betweenValues.length < 2) betweenValues = ['', ''];
+    } else {
+      betweenValues = ['', ''];
+    }
     betweenValues[index] = value;
-    
     updateCondition({
       ...condition,
       value: {
         ...condition.value,
-        value: betweenValues
+        value: betweenValues.join(',')
       }
     });
   };
@@ -195,7 +206,9 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
   
   // Handle delete condition
   const handleDeleteCondition = () => {
-    removeCondition(condition.id, parentGroupId);
+    if (condition.id) {
+      removeCondition(condition.id, parentGroupId);
+    }
   };
   
   // Render value input based on operator and column type
@@ -235,7 +248,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
             <TextField
               label="From"
               type={condition.column.dataType === 'date' ? 'date' : 'text'}
-              value={Array.isArray(condition.value.value) ? condition.value.value[0] || '' : ''}
+              value={typeof condition.value.value === 'string' ? (condition.value.value.split(',')[0] || '') : ''}
               onChange={(e) => handleBetweenValueChange(0, e.target.value)}
               fullWidth
               InputLabelProps={{ shrink: true }}
@@ -244,7 +257,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
             <TextField
               label="To"
               type={condition.column.dataType === 'date' ? 'date' : 'text'}
-              value={Array.isArray(condition.value.value) ? condition.value.value[1] || '' : ''}
+              value={typeof condition.value.value === 'string' ? (condition.value.value.split(',')[1] || '') : ''}
               onChange={(e) => handleBetweenValueChange(1, e.target.value)}
               fullWidth
               InputLabelProps={{ shrink: true }}
@@ -262,7 +275,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
               <Select<string[]>
                 multiple
                 value={Array.isArray(condition.value.value) ? condition.value.value : []}
-                onChange={(event) => handleEnumValueChange(event, null)}
+                onChange={(event) => handleEnumValueChange(event, null as unknown as React.ReactNode)}
                 label="Values"
                 disabled={isReadOnly}
                 renderValue={(selected: string[]) => (
@@ -310,6 +323,32 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
         );
         
       default:
+        // Special handling for Mapping datatype
+        if (condition.column.dataType === 'Mapping') {
+          return (
+            <Box display="flex" gap={1} alignItems="center" width="100%">
+              <TextField
+                label="From"
+                type="text"
+                value={typeof condition.value.value === 'string' ? (condition.value.value.split(',')[0] || '') : ''}
+                onChange={(e) => handleBetweenValueChange(0, e.target.value)}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                disabled={isReadOnly}
+              />
+              <TextField
+                label="To"
+                type="text"
+                value={typeof condition.value.value === 'string' ? (condition.value.value.split(',')[1] || '') : ''}
+                onChange={(e) => handleBetweenValueChange(1, e.target.value)}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                disabled={isReadOnly}
+              />
+            </Box>
+          );
+        }
+        
         if (condition.column.dataType === 'enum' && condition.column.enumValues) {
           return (
             <FormControl fullWidth>
@@ -378,7 +417,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
         </Select>
       </FormControl>
       
-      {condition.operator !== 'IS NULL' && condition.operator !== 'IS NOT NULL' && (
+      {condition.operator !== 'IS NULL' && condition.operator !== 'IS NOT NULL' && condition.column.dataType !== 'Mapping' && (
         <FormControl sx={{ minWidth: 100 }}>
           <InputLabel>Type</InputLabel>
           <Select

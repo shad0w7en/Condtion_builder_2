@@ -1,7 +1,7 @@
 export interface Column {
     name: string;
     displayName: string;
-    dataType: 'string' | 'number' | 'integer' | 'boolean' | 'date' | 'enum';
+    dataType: 'string' | 'number' | 'integer' | 'boolean' | 'date' | 'enum' | 'Mapping';
     table: string;
     enumValues?: string[];
   }
