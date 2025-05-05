@@ -9,11 +9,14 @@ import {
   IconButton,
   Chip,
   Autocomplete,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Button
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { SingleCondition, Operator, Column, ConditionValue, LogicalOperator } from '../../types';
 import { useConditionBuilder } from './ConditionBuilderContext';
+import * as XLSX from 'xlsx';
 
 interface ConditionRowProps {
   condition: SingleCondition;
@@ -183,13 +186,53 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
   
   // Handle IN values
   const handleInValueChange = (values: string[]) => {
+    // Filter out empty strings
+    const nonEmptyValues = values.filter(value => value.trim() !== '');
     updateCondition({
       ...condition,
       value: {
         ...condition.value,
-        value: values
+        value: nonEmptyValues.join(',') // Convert array to comma-separated string
       }
     });
+  };
+  
+  // Handle Excel file upload
+  const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const fileData = e.target?.result;
+        if (!fileData) return;
+
+        const excelWorkbook = XLSX.read(fileData, { type: 'array' });
+        const firstExcelSheet = excelWorkbook.Sheets[excelWorkbook.SheetNames[0]];
+        
+        // Convert sheet to JSON array
+        const excelJsonData = XLSX.utils.sheet_to_json(firstExcelSheet, { header: 1 });
+        
+        // Get all non-empty values from all columns
+        const values = excelJsonData
+          .flat() // Flatten the array to handle multiple columns
+          .filter((value): value is string | number => {
+            // Convert numbers to strings and filter out empty values
+            if (typeof value === 'number') return true;
+            if (typeof value === 'string') return value.trim() !== '';
+            return false;
+          })
+          .map(value => String(value).trim()); // Convert all values to strings and trim whitespace
+        
+        // Update the condition with the new values
+        handleInValueChange(values);
+      } catch (error) {
+        console.error('Error reading Excel file:', error);
+        // You might want to show an error message to the user here
+      }
+    };
+    reader.readAsArrayBuffer(file);
   };
   
   // Handle enum value selection
@@ -274,7 +317,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
               <InputLabel>Values</InputLabel>
               <Select<string[]>
                 multiple
-                value={Array.isArray(condition.value.value) ? condition.value.value : []}
+                value={typeof condition.value.value === 'string' ? condition.value.value.split(',').filter(v => v.trim() !== '') : []}
                 onChange={(event) => handleEnumValueChange(event, null as unknown as React.ReactNode)}
                 label="Values"
                 disabled={isReadOnly}
@@ -297,29 +340,46 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
         }
         
         return (
-          <Autocomplete
-            multiple
-            freeSolo
-            options={[]}
-            value={Array.isArray(condition.value.value) ? condition.value.value : []}
-            onChange={(_, newValue) => handleInValueChange(newValue)}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip
-                  label={option}
-                  {...getTagProps({ index })}
+          <Box display="flex" flexDirection="column" gap={1} width="100%">
+            <Autocomplete
+              multiple
+              freeSolo
+              options={[]}
+              value={typeof condition.value.value === 'string' ? condition.value.value.split(',').filter(v => v.trim() !== '') : []}
+              onChange={(_, newValue) => handleInValueChange(newValue)}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    label={option}
+                    {...getTagProps({ index })}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Values"
+                  disabled={isReadOnly}
+                  placeholder="Enter values or upload Excel"
                 />
-              ))
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Values"
-                disabled={isReadOnly}
+              )}
+              disabled={isReadOnly}
+            />
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<CloudUploadIcon />}
+              disabled={isReadOnly}
+            >
+              Upload Excel
+              <input
+                type="file"
+                hidden
+                accept=".xlsx,.xls"
+                onChange={handleExcelUpload}
               />
-            )}
-            disabled={isReadOnly}
-          />
+            </Button>
+          </Box>
         );
         
       default:

@@ -341,7 +341,12 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
           const [from, to] = value.value.split(',');
           conditionSql = `${column.name} BETWEEN ${formatSqlValue(from, column.dataType)} AND ${formatSqlValue(to, column.dataType)}`;
         } else if (operator === 'IN' || operator === 'NOT IN') {
-          const values = Array.isArray(value.value) ? value.value : [value.value];
+          // Handle both array and comma-separated string values
+          const values = typeof value.value === 'string' 
+            ? value.value.split(',').filter(v => v.trim() !== '')
+            : Array.isArray(value.value) 
+              ? value.value 
+              : [value.value];
           const formattedValues = values.map(v => formatSqlValue(v, column.dataType)).join(', ');
           conditionSql = `${column.name} ${operator} (${formattedValues})`;
         } else if (operator === 'IS NULL' || operator === 'IS NOT NULL') {
