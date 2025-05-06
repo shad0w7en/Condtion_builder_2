@@ -7,6 +7,7 @@ import {
   Button, 
   TextField 
 } from '@mui/material';
+import { useConditionBuilder } from './ConditionBuilderContext';
 
 interface SaveConditionDialogProps {
   open: boolean;
@@ -19,14 +20,28 @@ const SaveConditionDialog: React.FC<SaveConditionDialogProps> = ({
   onClose, 
   onSave 
 }) => {
+  const { savedConditions } = useConditionBuilder();
   const [conditionName, setConditionName] = useState('');
   const [error, setError] = useState('');
   const dialogRef = useRef<HTMLDivElement>(null);
   
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setConditionName(event.target.value);
-    if (event.target.value.trim()) {
+    const newName = event.target.value;
+    setConditionName(newName);
+    
+    // Clear error when user starts typing
+    if (error) {
       setError('');
+    }
+    
+    // Check for duplicate names
+    if (newName.trim()) {
+      const isDuplicate = savedConditions.some(
+        condition => condition.name.toLowerCase() === newName.toLowerCase().trim()
+      );
+      if (isDuplicate) {
+        setError('A condition with this name already exists');
+      }
     }
   };
   
@@ -35,6 +50,17 @@ const SaveConditionDialog: React.FC<SaveConditionDialogProps> = ({
       setError('Please enter a name for the condition');
       return;
     }
+    
+    // Final check for duplicate names
+    const isDuplicate = savedConditions.some(
+      condition => condition.name.toLowerCase() === conditionName.toLowerCase().trim()
+    );
+    
+    if (isDuplicate) {
+      setError('A condition with this name already exists');
+      return;
+    }
+    
     onSave(conditionName);
     setConditionName('');
   };
@@ -75,7 +101,12 @@ const SaveConditionDialog: React.FC<SaveConditionDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleSave} color="primary" variant="contained">
+        <Button 
+          onClick={handleSave} 
+          color="primary" 
+          variant="contained"
+          disabled={!!error || !conditionName.trim()}
+        >
           Save
         </Button>
       </DialogActions>

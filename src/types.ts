@@ -17,7 +17,7 @@ export interface Column {
     | '=' | '!=' | '>' | '>=' | '<' | '<=' 
     | 'LIKE' | 'NOT LIKE' 
     | 'IN' | 'NOT IN' 
-    | 'IS NULL' | 'IS NOT NULL' 
+    | 'IS'
     | 'BETWEEN';
   
   export type LogicalOperator = 'AND' | 'OR';

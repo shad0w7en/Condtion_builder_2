@@ -32,12 +32,12 @@ export const projectTables: Table[] = [
 
 // Define default operators for different data types
 export const defaultOperators = {
-  string: ['=', '!=', 'LIKE', 'NOT LIKE', 'IS NULL', 'IS NOT NULL'],
-  number: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS NULL', 'IS NOT NULL'],
-  integer: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS NULL', 'IS NOT NULL'],
-  boolean: ['=', 'IS NULL', 'IS NOT NULL'],
-  date: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS NULL', 'IS NOT NULL'],
-  enum: ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+  string: ['=', '!=', 'LIKE', 'NOT LIKE', 'IS'],
+  number: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS'],
+  integer: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS'],
+  boolean: ['=', 'IS'],
+  date: ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS'],
+  enum: ['=', '!=', 'IN', 'NOT IN', 'IS'],
   Mapping: ['=', '!='],
 };
 

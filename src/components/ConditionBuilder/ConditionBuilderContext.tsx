@@ -349,8 +349,8 @@ export const ConditionBuilderProvider: React.FC<ConditionBuilderProviderProps> =
               : [value.value];
           const formattedValues = values.map(v => formatSqlValue(v, column.dataType)).join(', ');
           conditionSql = `${column.name} ${operator} (${formattedValues})`;
-        } else if (operator === 'IS NULL' || operator === 'IS NOT NULL') {
-          conditionSql = `${column.name} ${operator}`;
+        } else if (operator === 'IS') {
+          conditionSql = `${column.name} IS ${value.value === 'NOT NULL' ? 'NOT NULL' : 'NULL'}`;
         } else if (value.value === null || value.value === 'NULL') {
           conditionSql = `${column.name} IS NULL`;
         } else {

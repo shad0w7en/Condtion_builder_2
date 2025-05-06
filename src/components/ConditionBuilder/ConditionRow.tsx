@@ -38,18 +38,18 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
   const getValidOperators = (column: Column): Operator[] => {
     switch (column.dataType) {
       case 'string':
-        return ['=', '!=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'];
+        return ['=', '!=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'IS'];
       case 'number':
       case 'integer':
-        return ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'];
+        return ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IN', 'NOT IN', 'IS'];
       case 'boolean':
-        return ['=', 'IS NULL', 'IS NOT NULL'];
+        return ['=', 'IS'];
       case 'date':
-        return ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS NULL', 'IS NOT NULL'];
+        return ['=', '!=', '>', '>=', '<', '<=', 'BETWEEN', 'IS'];
       case 'enum':
-        return ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'];
+        return ['=', '!=', 'IN', 'NOT IN', 'IS'];
       default:
-        return ['=', '!=', 'IS NULL', 'IS NOT NULL'];
+        return ['=', '!=', 'IS'];
     }
   };
   
@@ -104,9 +104,9 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
   const handleOperatorChange = (event: SelectChangeEvent) => {
     const newOperator = event.target.value as Operator;
     
-    // For NULL operators, we don't need a value
-    const newValue: ConditionValue = (newOperator === 'IS NULL' || newOperator === 'IS NOT NULL')
-      ? { type: 'value', value: null }
+    // For IS operator, set initial value to NULL
+    const newValue: ConditionValue = newOperator === 'IS'
+      ? { type: 'value', value: 'NULL' }
       : condition.value;
     
     updateCondition({
@@ -256,9 +256,22 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
   
   // Render value input based on operator and column type
   const renderValueInput = () => {
-    // If the operator is IS NULL or IS NOT NULL, no value input is needed
-    if (condition.operator === 'IS NULL' || condition.operator === 'IS NOT NULL') {
-      return null;
+    // If the operator is IS, show NULL/NOT NULL selection
+    if (condition.operator === 'IS') {
+      return (
+        <FormControl fullWidth>
+          <InputLabel>Value</InputLabel>
+          <Select
+            value={condition.value.value || ''}
+            onChange={(event) => handleValueChange(event as any)}
+            label="Value"
+            disabled={isReadOnly}
+          >
+            <MenuItem value="NULL">NULL</MenuItem>
+            <MenuItem value="NOT NULL">NOT NULL</MenuItem>
+          </Select>
+        </FormControl>
+      );
     }
     
     // If value type is column reference
@@ -477,7 +490,7 @@ const ConditionRow: React.FC<ConditionRowProps> = ({
         </Select>
       </FormControl>
       
-      {condition.operator !== 'IS NULL' && condition.operator !== 'IS NOT NULL' && condition.column.dataType !== 'Mapping' && (
+      {condition.operator !== 'IS' && condition.column.dataType !== 'Mapping' && (
         <FormControl sx={{ minWidth: 100 }}>
           <InputLabel>Type</InputLabel>
           <Select
